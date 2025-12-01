@@ -1,0 +1,90 @@
+/* ================================
+   GLOBAL BASE STYLE
+   ================================ */
+
+/* Font mặc định */
+body {
+  font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+  background-color: #f5f7fb;
+  color: #333;
+  margin: 0;
+}
+
+/* Reset link */
+a {
+  text-decoration: none;
+}
+
+/* Scrollbar hiện đại */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ================================
+   LAYOUT FIX
+   ================================ */
+
+/* Main area (AdminLayout.vue) */
+.main {
+  margin-left: 240px !important; /* Khớp sidebar */
+  min-height: 100vh;
+}
+
+/* Sidebar fix (đã có width 240px bên Sidebar.vue) */
+.sidebar {
+  overflow-y: auto;
+}
+
+/* Navbar */
+.navbar {
+  z-index: 900;
+}
+
+/* ================================
+   UTILITIES
+   ================================ */
+
+/* Card shadow đẹp hơn */
+.card {
+  border-radius: 10px !important;
+}
+
+/* Text small white overlay khi hover menu */
+.sidebar .nav-link:hover {
+  transition: 0.15s;
+}
+
+/* Tăng tính đồng bộ màu */
+.bg-primary {
+  background-color: #1d68d9 !important; /* Xanh dương thư viện */
+}
+
+.text-primary {
+  color: #1d68d9 !important;
+}
+
+/* Table style nhẹ */
+.table thead th {
+  font-weight: 600;
+}
+
+/* Button nhỏ đẹp */
+.btn-sm {
+  border-radius: 6px !important;
+}
+
+/* Disable text select cho sidebar */
+.sidebar,
+.sidebar * {
+  user-select: none;
+}

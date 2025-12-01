@@ -1,0 +1,113 @@
+<!-- src/components/borrow/CreateBorrowModal.vue -->
+<template>
+  <div v-if="visible">
+    <div class="modal fade show d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form @submit.prevent="handleSubmit">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fa-solid fa-plus me-2"></i>
+                Tạo phiếu mượn
+              </h5>
+              <button type="button" class="btn-close" @click="close"></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Mã độc giả (MaDocGia)</label>
+                <input
+                  v-model="form.MaDocGia"
+                  type="text"
+                  class="form-control"
+                  placeholder="VD: DG001"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Mã sách (MaSach)</label>
+                <input
+                  v-model="form.MaSach"
+                  type="text"
+                  class="form-control"
+                  placeholder="VD: S001"
+                  required
+                />
+              </div>
+
+              <div class="small text-muted">
+                Hạn mượn, số ngày gia hạn, số sách tối đa...
+                sẽ lấy theo cấu hình trên server (Config).
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                @click="close"
+                :disabled="loading"
+              >
+                Hủy
+              </button>
+              <button type="submit" class="btn btn-success" :disabled="loading">
+                <span
+                  v-if="loading"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                Tạo phiếu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref } from "vue";
+import { useBorrowStore } from "../../stores/borrow";
+
+const store = useBorrowStore();
+const visible = ref(false);
+const loading = ref(false);
+
+const form = reactive({
+  MaDocGia: "",
+  MaSach: "",
+});
+
+const open = () => {
+  form.MaDocGia = "";
+  form.MaSach = "";
+  visible.value = true;
+};
+
+const close = () => {
+  if (loading.value) return;
+  visible.value = false;
+};
+
+const handleSubmit = async () => {
+  if (!form.MaDocGia || !form.MaSach) return;
+
+  try {
+    loading.value = true;
+    await store.create({
+      MaDocGia: form.MaDocGia.trim(),
+      MaSach: form.MaSach.trim(),
+    });
+    close();
+  } catch (err) {
+    alert(err?.response?.data?.message || "Lỗi tạo phiếu mượn");
+  } finally {
+    loading.value = false;
+  }
+};
+
+defineExpose({ open });
+</script>
