@@ -2,12 +2,12 @@
   <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-building-columns me-2"></i>
+        <font-awesome-icon icon="building-columns" class="me-2" />
         Nhà xuất bản
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm NXB
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm NXB
       </button>
     </div>
 
@@ -53,10 +53,10 @@
               <td>{{ p.DiaChi }}</td>
               <td class="text-center">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(p)">
-                  <i class="fa-solid fa-pen"></i>
+                  <font-awesome-icon icon="pen" />
                 </button>
                 <button class="btn btn-sm btn-outline-danger" @click="remove(p)">
-                  <i class="fa-solid fa-trash"></i>
+                  <font-awesome-icon icon="trash" />
                 </button>
               </td>
             </tr>
@@ -69,25 +69,13 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <nav>
-          <ul class="pagination mb-0">
-            <li class="page-item" :class="{ disabled: store.page === 1 }">
-              <button class="page-link" @click="changePage(store.page - 1)">«</button>
-            </li>
-
-            <li class="page-item disabled">
-              <span class="page-link">Trang {{ store.page }}</span>
-            </li>
-
-            <li
-              class="page-item"
-              :class="{ disabled: store.page * store.limit >= store.total }"
-            >
-              <button class="page-link" @click="changePage(store.page + 1)">»</button>
-            </li>
-          </ul>
-        </nav>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
@@ -104,17 +92,37 @@
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Mã NXB *</label>
-                <input v-model="form.MaNXB" class="form-control" :disabled="editing" required />
+                <input 
+                  v-model="form.MaNXB" 
+                  type="text"
+                  class="form-control" 
+                  :disabled="editing" 
+                  required 
+                  minlength="2"
+                  maxlength="20"
+                />
               </div>
 
               <div class="mb-3">
                 <label class="form-label">Tên NXB *</label>
-                <input v-model="form.TenNXB" class="form-control" required />
+                <input 
+                  v-model="form.TenNXB" 
+                  type="text"
+                  class="form-control" 
+                  required 
+                  minlength="2"
+                  maxlength="100"
+                />
               </div>
 
               <div class="mb-0">
                 <label class="form-label">Địa chỉ</label>
-                <textarea v-model="form.DiaChi" class="form-control" rows="2"></textarea>
+                <textarea 
+                  v-model="form.DiaChi" 
+                  class="form-control" 
+                  rows="2"
+                  maxlength="200"
+                ></textarea>
               </div>
             </div>
 
@@ -132,9 +140,14 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { usePublisherStore } from "../../stores/publisher";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
+import Pagination from "../../components/Pagination.vue";
 import * as bootstrap from "bootstrap";
 
 const store = usePublisherStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const modalRef = ref(null);
 let modal = null;
 
@@ -157,7 +170,8 @@ const handleSearch = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -179,17 +193,29 @@ const openEdit = (p) => {
 };
 
 const submitForm = async () => {
-  if (editing.value) {
-    await store.update(form.MaNXB, form);
-  } else {
-    await store.create(form);
+  try {
+    if (editing.value) {
+      await store.update(form.MaNXB, form);
+      toast.success('Đã cập nhật nhà xuất bản');
+    } else {
+      await store.create(form);
+      toast.success('Đã thêm nhà xuất bản mới');
+    }
+    modal.hide();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi lưu nhà xuất bản');
   }
-  modal.hide();
 };
 
 const remove = async (p) => {
-  if (confirm(`Xóa NXB "${p.TenNXB}"?`)) {
+  try {
+    await confirm(`Xóa NXB "${p.TenNXB}"?`);
     await store.remove(p.MaNXB);
+    toast.success('Đã xóa nhà xuất bản');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa nhà xuất bản');
+    }
   }
 };
 </script>

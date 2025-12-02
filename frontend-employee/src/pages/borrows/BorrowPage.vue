@@ -4,11 +4,11 @@
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-book-open me-2"></i> Phiếu mượn
+        <font-awesome-icon icon="book-open" class="me-2" /> Phiếu mượn
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Tạo phiếu mượn
+        <font-awesome-icon icon="plus" class="me-1" /> Tạo phiếu mượn
       </button>
     </div>
 
@@ -91,8 +91,18 @@
               <td><span class="badge" :class="statusClass(b.TrangThai)">{{ b.TrangThai }}</span></td>
 
               <!-- TIỀN PHẠT -->
-              <td class="fw-bold text-danger">
-                {{ calcFine(b).toLocaleString("vi-VN") }} đ
+              <td>
+                <span v-if="calcFine(b) === 0" class="text-muted" style="font-size: 1rem;">0 đ</span>
+                <button 
+                  v-else
+                  class="btn btn-sm btn-link text-danger p-0 text-decoration-none fw-bold"
+                  @click="showFineDetail(b)"
+                  type="button"
+                  style="font-size: 1rem;"
+                >
+                  {{ calcFine(b).toLocaleString("vi-VN") }} đ
+                  <font-awesome-icon icon="circle-info" class="ms-1" style="font-size: 0.85rem;" />
+                </button>
               </td>
 
               <!-- ACTIONS -->
@@ -102,7 +112,7 @@
                     class="btn btn-sm btn-outline-secondary dropdown-toggle"
                     data-bs-toggle="dropdown"
                   >
-                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                    <font-awesome-icon icon="ellipsis-vertical" />
                   </button>
 
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -110,35 +120,35 @@
                     <!-- Trả sách -->
                     <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
                       <button class="dropdown-item" @click="openReturn(b)">
-                        <i class="fa-solid fa-rotate-left me-2"></i> Trả sách
+                        <font-awesome-icon icon="rotate-left" class="me-2" /> Trả sách
                       </button>
                     </li>
 
                     <!-- Gia hạn -->
                     <li v-if="b.TrangThai === 'Đã mượn'">
                       <button class="dropdown-item" @click="extendBorrow(b)">
-                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Gia hạn
+                        <font-awesome-icon icon="clock-rotate-left" class="me-2" /> Gia hạn
                       </button>
                     </li>
 
                     <!-- Báo hư hỏng -->
                     <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
                       <button class="dropdown-item" @click="openDamaged(b)">
-                        <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo hư hỏng
+                        <font-awesome-icon icon="triangle-exclamation" class="me-2" /> Báo hư hỏng
                       </button>
                     </li>
 
                     <!-- Báo mất -->
                     <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
                       <button class="dropdown-item" @click="openLost(b)">
-                        <i class="fa-solid fa-book-dead me-2"></i> Báo mất sách
+                        <font-awesome-icon icon="book-dead" class="me-2" /> Báo mất sách
                       </button>
                     </li>
 
                     <!-- BỒI THƯỜNG -->
                     <li v-if="canMarkPaid(b)">
                       <button class="dropdown-item" @click="markPaid(b)">
-                        <i class="fa-solid fa-check me-2"></i> Đã bồi thường
+                        <font-awesome-icon icon="check" class="me-2" /> Đã bồi thường
                       </button>
                     </li>
 
@@ -147,14 +157,14 @@
                     <!-- In phiếu mượn -->
                     <li v-if="canPrintBorrow(b)">
                       <button class="dropdown-item" @click="printBorrow(b._id)">
-                        <i class="fa-solid fa-print me-2"></i> In phiếu mượn
+                        <font-awesome-icon icon="print" class="me-2" /> In phiếu mượn
                       </button>
                     </li>
 
                     <!-- In phiếu phạt -->
                     <li v-if="canPrintFine(b)">
                       <button class="dropdown-item text-danger" @click="printFine(b._id)">
-                        <i class="fa-solid fa-file-pdf me-2"></i> In phiếu phạt
+                        <font-awesome-icon icon="file-pdf" class="me-2" /> In phiếu phạt
                       </button>
                     </li>
 
@@ -173,20 +183,13 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <ul class="pagination mb-0">
-          <li class="page-item" :class="{ disabled: store.page === 1 }">
-            <button class="page-link" @click="changePage(store.page - 1)">«</button>
-          </li>
-
-          <li class="page-item disabled">
-            <span class="page-link">Trang {{ store.page }}</span>
-          </li>
-
-          <li class="page-item" :class="{ disabled: store.page * store.limit >= store.total }">
-            <button class="page-link" @click="changePage(store.page + 1)">»</button>
-          </li>
-        </ul>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
@@ -196,23 +199,114 @@
     <DamagedModal ref="damagedModal" />
     <LostModal ref="lostModal" />
 
+    <!-- MODAL: Fine Detail -->
+    <div class="modal fade" id="fineModal" tabindex="-1" ref="fineModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon icon="circle-exclamation" class="me-2 text-danger" />
+              Chi tiết tiền phạt
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="selectedBorrow">
+              <div class="mb-3">
+                <strong>Độc giả:</strong> {{ selectedBorrow.MaDocGia }} - {{ selectedBorrow.reader?.HoLot }} {{ selectedBorrow.reader?.Ten }}
+              </div>
+              <div class="mb-3">
+                <strong>Sách:</strong> {{ selectedBorrow.MaSach }} - {{ selectedBorrow.book?.TenSach }}
+              </div>
+
+              <hr>
+
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Loại phạt</th>
+                      <th class="text-end">Số tiền</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="getFineBreakdown(selectedBorrow).lateFine > 0">
+                      <td>
+                        Phạt trễ hạn
+                        <br>
+                        <small class="text-muted">
+                          {{ getFineBreakdown(selectedBorrow).daysLate }} ngày × 5,000 đ
+                        </small>
+                      </td>
+                      <td class="text-end">
+                        {{ getFineBreakdown(selectedBorrow).lateFine.toLocaleString("vi-VN") }} đ
+                      </td>
+                    </tr>
+                    <tr v-if="getFineBreakdown(selectedBorrow).damageFine > 0">
+                      <td>
+                        <span v-if="selectedBorrow.TrangThai === 'Hư hỏng'">
+                          Phạt hư hỏng ({{ selectedBorrow.MucDoHuHong || "Không rõ" }})
+                        </span>
+                        <span v-else-if="['Mất sách', 'Đã bồi thường'].includes(selectedBorrow.TrangThai)">
+                          Phạt mất sách
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        {{ getFineBreakdown(selectedBorrow).damageFine.toLocaleString("vi-VN") }} đ
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="table-danger fw-bold">
+                      <td>TỔNG CỘNG</td>
+                      <td class="text-end">
+                        {{ calcFine(selectedBorrow).toLocaleString("vi-VN") }} đ
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
+import { useToast } from "../../composables/useToast";
+import { useConfirm } from "../../composables/useConfirm";
+import { Modal } from "bootstrap";
 
+import Pagination from "../../components/Pagination.vue";
 import CreateBorrowModal from "../../components/borrow/CreateBorrowModal.vue";
 import ReturnModal from "../../components/borrow/ReturnModal.vue";
 import DamagedModal from "../../components/borrow/DamagedModal.vue";
 import LostModal from "../../components/borrow/LostModal.vue";
 
 const store = useBorrowStore();
+const toast = useToast();
+const { confirm } = useConfirm();
+const fineModal = ref(null);
+const selectedBorrow = ref(null);
+let fineModalInstance = null;
 
 onMounted(() => {
   store.fetch();
+  fineModalInstance = new Modal(fineModal.value);
 });
+
+const showFineDetail = (borrow) => {
+  selectedBorrow.value = borrow;
+  fineModalInstance.show();
+};
 
 /* FILTERS */
 const applyFilters = () => {
@@ -229,7 +323,8 @@ const resetFilters = () => {
 
 /* PAGINATION */
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -253,6 +348,36 @@ const statusClass = (st) =>
 /* CALC FINE */
 const calcFine = (b) => b.TienPhat || 0;
 
+/* CHECK MULTIPLE FINES */
+const hasMultipleFines = (b) => {
+  if (!b.NgayTra || !b.HanTra) return false;
+  const hanTra = new Date(b.HanTra);
+  const ngayTra = new Date(b.NgayTra);
+  return ngayTra > hanTra && ["Hư hỏng", "Mất sách", "Đã bồi thường"].includes(b.TrangThai);
+};
+
+/* FINE BREAKDOWN */
+const getFineBreakdown = (b) => {
+  let daysLate = 0;
+  let lateFine = 0;
+  let damageFine = 0;
+
+  if (b.NgayTra && b.HanTra) {
+    const hanTra = new Date(b.HanTra);
+    const ngayTra = new Date(b.NgayTra);
+    if (ngayTra > hanTra) {
+      daysLate = Math.ceil((ngayTra - hanTra) / 86400000);
+      lateFine = daysLate * 5000;
+    }
+  }
+
+  if (["Hư hỏng", "Mất sách", "Đã bồi thường"].includes(b.TrangThai)) {
+    damageFine = (b.TienPhat || 0) - lateFine;
+  }
+
+  return { daysLate, lateFine, damageFine };
+};
+
 /* CONDITIONS */
 const canPrintBorrow = (b) => b.TrangThai === "Đã mượn";
 
@@ -275,13 +400,27 @@ const openDamaged = (b) => damagedModal.value?.open(b);
 const openLost = (b) => lostModal.value?.open(b);
 
 const extendBorrow = async (b) => {
-  if (!confirm("Gia hạn thêm cho phiếu mượn này?")) return;
-  await store.extendBorrow(b._id);
+  try {
+    await confirm("Gia hạn thêm cho phiếu mượn này?");
+    await store.extendBorrow(b._id);
+    toast.success('Đã gia hạn thành công');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi gia hạn');
+    }
+  }
 };
 
 const markPaid = async (b) => {
-  if (!confirm("Xác nhận độc giả đã bồi thường?")) return;
-  await store.markPaid(b._id);
+  try {
+    await confirm("Xác nhận độc giả đã bồi thường?");
+    await store.markPaid(b._id);
+    toast.success('Đã xác nhận bồi thường');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xác nhận bồi thường');
+    }
+  }
 };
 
 const printBorrow = (id) => {

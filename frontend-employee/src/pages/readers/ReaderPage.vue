@@ -2,11 +2,11 @@
   <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-users me-2"></i> Quản lý độc giả
+        <font-awesome-icon icon="users" class="me-2" /> Quản lý độc giả
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm độc giả
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm độc giả
       </button>
     </div>
 
@@ -94,7 +94,7 @@
               <td class="text-center">
                 <div class="btn-group btn-group-sm">
                   <button class="btn btn-outline-primary" @click="openEdit(d)">
-                    <i class="fa-solid fa-pen"></i>
+                    <font-awesome-icon icon="pen" />
                   </button>
 
                   <button class="btn btn-outline-warning" @click="toggleStatus(d)">
@@ -103,7 +103,7 @@
                   </button>
 
                   <button class="btn btn-outline-danger" @click="remove(d)">
-                    <i class="fa-solid fa-trash"></i>
+                    <font-awesome-icon icon="trash" />
                   </button>
                 </div>
               </td>
@@ -118,27 +118,20 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <ul class="pagination mb-0">
-          <li class="page-item" :class="{ disabled: store.page === 1 }">
-            <button class="page-link" @click="changePage(store.page - 1)">«</button>
-          </li>
-
-          <li class="page-item disabled">
-            <span class="page-link">Trang {{ store.page }}</span>
-          </li>
-
-          <li class="page-item" :class="{ disabled: store.page * store.limit >= store.total }">
-            <button class="page-link" @click="changePage(store.page + 1)">»</button>
-          </li>
-        </ul>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
 
     </div>
 
     <!-- MODAL -->
     <div class="modal fade" id="readerModal" tabindex="-1" ref="modalRef">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
           <form @submit.prevent="submitForm">
@@ -149,37 +142,94 @@
 
             <div class="modal-body">
 
-              <label class="form-label">Mã độc giả *</label>
-              <input v-model="form.MaDocGia" class="form-control" :disabled="editing" required />
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Mã độc giả *</label>
+                  <input 
+                    v-model="form.MaDocGia" 
+                    type="text"
+                    class="form-control" 
+                    :disabled="editing" 
+                    required 
+                    minlength="3"
+                    maxlength="20"
+                  />
+                </div>
 
-              <label class="form-label mt-3">Họ lót *</label>
-              <input v-model="form.HoLot" class="form-control" required />
+                <div class="col-md-6">
+                  <label class="form-label">Email *</label>
+                  <input type="email" v-model="form.Email" class="form-control" required />
+                </div>
 
-              <label class="form-label mt-3">Tên *</label>
-              <input v-model="form.Ten" class="form-control" required />
+                <div class="col-md-6">
+                  <label class="form-label">Họ lót *</label>
+                  <input 
+                    v-model="form.HoLot" 
+                    type="text"
+                    class="form-control" 
+                    required 
+                    minlength="1"
+                    maxlength="50"
+                  />
+                </div>
 
-              <label class="form-label mt-3">Ngày sinh</label>
-              <input type="date" v-model="form.NgaySinh" class="form-control" />
+                <div class="col-md-6">
+                  <label class="form-label">Tên *</label>
+                  <input 
+                    v-model="form.Ten" 
+                    type="text"
+                    class="form-control" 
+                    required 
+                    minlength="1"
+                    maxlength="20"
+                  />
+                </div>
 
-              <label class="form-label mt-3">Email *</label>
-              <input type="email" v-model="form.Email" class="form-control" required />
+                <div class="col-md-4">
+                  <label class="form-label">Ngày sinh</label>
+                  <input type="date" v-model="form.NgaySinh" class="form-control" />
+                </div>
 
-              <label class="form-label mt-3">Điện thoại</label>
-              <input v-model="form.DienThoai" class="form-control" />
+                <div class="col-md-4">
+                  <label class="form-label">Giới tính</label>
+                  <select v-model="form.Phai" class="form-select">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
 
-              <label class="form-label mt-3">Giới tính</label>
-              <select v-model="form.Phai" class="form-select">
-                <option value="Nam">Nam</option>
-                <option value="Nữ">Nữ</option>
-                <option value="Khác">Khác</option>
-              </select>
+                <div class="col-md-4">
+                  <label class="form-label">Điện thoại</label>
+                  <input 
+                    v-model="form.DienThoai" 
+                    type="tel"
+                    class="form-control" 
+                    pattern="[0-9]{10,11}"
+                    title="Số điện thoại phải có 10-11 chữ số"
+                  />
+                </div>
 
-              <label class="form-label mt-3">Địa chỉ</label>
-              <input v-model="form.DiaChi" class="form-control" />
+                <div class="col-12">
+                  <label class="form-label">Địa chỉ</label>
+                  <textarea 
+                    v-model="form.DiaChi" 
+                    class="form-control" 
+                    rows="2"
+                    maxlength="200"
+                  ></textarea>
+                </div>
 
-              <div v-if="!editing" class="mt-3">
-                <label class="form-label">Mật khẩu *</label>
-                <input type="password" v-model="form.MatKhau" class="form-control" required />
+                <div class="col-12" v-if="!editing">
+                  <label class="form-label">Mật khẩu *</label>
+                  <input 
+                    type="password" 
+                    v-model="form.MatKhau" 
+                    class="form-control" 
+                    required 
+                    minlength="6"
+                  />
+                </div>
               </div>
 
             </div>
@@ -202,8 +252,13 @@
 import { reactive, ref, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import { useReaderStore } from "../../stores/reader";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
+import Pagination from "../../components/Pagination.vue";
 
 const store = useReaderStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const modalRef = ref(null);
 let modal = null;
 
@@ -240,7 +295,8 @@ const resetFilters = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -278,20 +334,38 @@ const openEdit = (d) => {
 };
 
 const submitForm = async () => {
-  if (editing.value) {
-    await store.update(form.MaDocGia, form);
-  } else {
-    await store.create(form);
+  try {
+    if (editing.value) {
+      await store.update(form.MaDocGia, form);
+      toast.success('Đã cập nhật độc giả');
+    } else {
+      await store.create(form);
+      toast.success('Đã thêm độc giả mới');
+    }
+    modal.hide();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi lưu độc giả');
   }
-  modal.hide();
 };
 
 const toggleStatus = async (d) => {
-  await store.toggleStatus(d.MaDocGia);
+  try {
+    await store.toggleStatus(d.MaDocGia);
+    toast.success('Đã đổi trạng thái');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi đổi trạng thái');
+  }
 };
 
 const remove = async (d) => {
-  if (!confirm(`Xóa độc giả "${d.HoLot} ${d.Ten}"?`)) return;
-  await store.remove(d.MaDocGia);
+  try {
+    await confirm(`Xóa độc giả "${d.HoLot} ${d.Ten}"?`);
+    await store.remove(d.MaDocGia);
+    toast.success('Đã xóa độc giả');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa độc giả');
+    }
+  }
 };
 </script>

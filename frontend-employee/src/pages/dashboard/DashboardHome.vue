@@ -1,6 +1,16 @@
 <template>
   <div class="container-fluid py-3">
-    <h4 class="mb-3">Thống kê hệ thống thư viện</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">
+        <font-awesome-icon icon="chart-line" class="me-2" />
+        Thống kê hệ thống thư viện
+      </h4>
+      
+      <button class="btn btn-danger btn-sm" @click="exportOverallPDF">
+        <font-awesome-icon icon="file-pdf" class="me-1" />
+        Xuất báo cáo tổng quan
+      </button>
+    </div>
 
     <!-- ======= ROW 1: OVERVIEW CARDS ======= -->
     <div class="row g-3 mb-4">
@@ -8,7 +18,7 @@
         <div class="card shadow-sm border-0 h-100">
           <div class="card-body d-flex align-items-center">
             <div class="me-3">
-              <i :class="card.icon + ' fa-2x text-primary'"></i>
+              <font-awesome-icon :icon="card.icon" size="2x" class="text-primary" />
             </div>
             <div>
               <div class="text-muted small">{{ card.label }}</div>
@@ -28,7 +38,12 @@
       <!-- Top Books -->
       <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
-          <div class="card-header bg-white fw-bold">Top 5 sách được mượn nhiều nhất</div>
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Top 5 sách được mượn nhiều nhất</span>
+            <button class="btn btn-sm btn-outline-danger" @click="exportTopBooksPDF">
+              <font-awesome-icon icon="file-pdf" />
+            </button>
+          </div>
           <div class="card-body">
             <apexchart
               v-if="topBooksSeries.length"
@@ -45,7 +60,12 @@
       <!-- Top Readers -->
       <div class="col-md-6">
         <div class="card shadow-sm border-0 h-100">
-          <div class="card-header bg-white fw-bold">Top 5 độc giả mượn nhiều nhất</div>
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Top 5 độc giả mượn nhiều nhất</span>
+            <button class="btn btn-sm btn-outline-danger" @click="exportTopReadersPDF">
+              <font-awesome-icon icon="file-pdf" />
+            </button>
+          </div>
           <div class="card-body">
             <apexchart
               v-if="topReadersSeries.length"
@@ -71,6 +91,9 @@
             <span class="fw-bold">Lượt mượn theo tháng</span>
 
             <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-danger" @click="exportBorrowReturnPDF">
+                <font-awesome-icon icon="file-pdf" />
+              </button>
               <span class="small text-muted">Năm</span>
               <input
                 type="number"
@@ -100,6 +123,9 @@
             <span class="fw-bold">Lượt trả theo tháng</span>
 
             <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-danger" @click="exportBorrowReturnPDF">
+                <font-awesome-icon icon="file-pdf" />
+              </button>
               <span class="small text-muted">Năm</span>
               <input
                 type="number"
@@ -129,6 +155,9 @@
             <span class="fw-bold">Tỉ lệ trạng thái phiếu mượn</span>
 
             <div class="d-flex align-items-center gap-1 small">
+              <button class="btn btn-sm btn-outline-danger" @click="exportStatusPDF">
+                <font-awesome-icon icon="file-pdf" />
+              </button>
               <select
                 class="form-select form-select-sm"
                 v-model.number="store.statusMonth"
@@ -169,6 +198,9 @@
         <span class="fw-bold">Thống kê tiền phạt</span>
 
         <div class="d-flex align-items-center gap-2 small">
+          <button class="btn btn-sm btn-outline-danger" @click="exportFinesPDF">
+            <font-awesome-icon icon="file-pdf" />
+          </button>
           <label class="mb-0">Tháng</label>
           <select
             class="form-select form-select-sm"
@@ -245,10 +277,10 @@ const loading = store.loading;
 
 /* ========= OVERVIEW CARDS ========= */
 const cards = computed(() => [
-  { label: "Tổng số sách", value: store.overview.totalBooks, icon: "fa-solid fa-book" },
-  { label: "Độc giả đang hoạt động", value: store.overview.totalReaders, icon: "fa-solid fa-users" },
-  { label: "Sách đang mượn", value: store.overview.borrowing, icon: "fa-solid fa-book-open" },
-  { label: "Sách quá hạn", value: store.overview.overdue, icon: "fa-solid fa-triangle-exclamation" },
+  { label: "Tổng số sách", value: store.overview.totalBooks, icon: "book" },
+  { label: "Độc giả đang hoạt động", value: store.overview.totalReaders, icon: "users" },
+  { label: "Sách đang mượn", value: store.overview.borrowing, icon: "book-open" },
+  { label: "Sách quá hạn", value: store.overview.overdue, icon: "triangle-exclamation" },
 ]);
 
 /* ========= TOP BOOKS ========= */
@@ -322,6 +354,42 @@ const statusClass = (st) =>
     "Mất sách": "bg-dark",
     "Đã bồi thường": "bg-success",
   }[st] || "bg-light");
+
+/* ========= PDF EXPORT FUNCTIONS ========= */
+const exportOverallPDF = () => {
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/overview`;
+  window.open(url, "_blank");
+};
+
+const exportTopBooksPDF = () => {
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/top?type=books`;
+  window.open(url, "_blank");
+};
+
+const exportTopReadersPDF = () => {
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/top?type=readers`;
+  window.open(url, "_blank");
+};
+
+const exportBorrowReturnPDF = () => {
+  const year = store.brYear;
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/borrow-return?year=${year}`;
+  window.open(url, "_blank");
+};
+
+const exportStatusPDF = () => {
+  const month = store.statusMonth;
+  const year = store.statusYear;
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/status?month=${month}&year=${year}`;
+  window.open(url, "_blank");
+};
+
+const exportFinesPDF = () => {
+  const month = store.fineMonth;
+  const year = store.fineYear;
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/fines?month=${month}&year=${year}`;
+  window.open(url, "_blank");
+};
 
 /* ========= LOAD DATA ========= */
 onMounted(() => {

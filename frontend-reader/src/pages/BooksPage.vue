@@ -27,14 +27,22 @@
 import { onMounted } from "vue";
 import { useBookStore } from "../stores/book";
 import { useCartStore } from "../stores/cart";
+import { useToast } from "../composables/useToast";
 
 const books = useBookStore();
 const cart = useCartStore();
+const toast = useToast();
 
 onMounted(() => {
   books.fetch();
 });
+
 const add = async (id) => {
-  await cart.add(id);
+  try {
+    await cart.add(id);
+    toast.success('Đã thêm vào giỏ');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi thêm vào giỏ');
+  }
 };
 </script>

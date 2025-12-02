@@ -24,7 +24,7 @@ export const useRequestStore = defineStore("request-admin", {
         });
 
         this.items = res.data.data;
-        this.total = res.data.total;
+        this.total = res.data.pagination?.total || 0;
       } finally {
         this.loading = false;
       }

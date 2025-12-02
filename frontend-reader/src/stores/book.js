@@ -38,7 +38,7 @@ export const useBookStore = defineStore("book", {
         });
 
         this.items = res.data.data || [];
-        this.total = res.data.total ?? this.items.length;
+        this.total = res.data.pagination?.total || 0;
       } finally {
         this.loading = false;
       }

@@ -105,9 +105,9 @@
 
             <h6 class="fw-bold">{{ book.TenSach }}</h6>
 
-            <p class="text-muted small mb-1">✍️ <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b></p>
-            <p class="text-muted small mb-1">🏢 <b>{{ book.MaNXB?.TenNXB || "Không rõ" }}</b></p>
-            <p class="text-muted small mb-1">🏷️ <b>{{ book.MaTheLoai?.TenTheLoai || "Không rõ" }}</b></p>
+            <p class="text-muted small mb-1">Tác giả: <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b></p>
+            <p class="text-muted small mb-1">Nhà xuất bản: <b>{{ book.MaNXB?.TenNXB || "Không rõ" }}</b></p>
+            <p class="text-muted small mb-1">Thể loại: <b>{{ book.MaTheLoai?.TenTheLoai || "Không rõ" }}</b></p>
 
             <p class="text-muted small">Mã: {{ book.MaSach }}</p>
 
@@ -129,20 +129,13 @@
     </div>
 
     <!-- PAGINATION -->
-    <div class="d-flex justify-content-center mt-4">
-      <ul class="pagination">
-        <li class="page-item" :class="{ disabled: page === 1 }">
-          <button class="page-link" @click="changePage(page - 1)">«</button>
-        </li>
-
-        <li class="page-item disabled">
-          <span class="page-link">{{ page }}</span>
-        </li>
-
-        <li class="page-item" :class="{ disabled: page * limit >= total }">
-          <button class="page-link" @click="changePage(page + 1)">»</button>
-        </li>
-      </ul>
+    <div class="mt-4">
+      <Pagination
+        :page="page"
+        :limit="limit"
+        :total="total"
+        @change="changePage"
+      />
     </div>
 
   </div>
@@ -152,10 +145,13 @@
 import { ref, onMounted, computed } from "vue";
 import { useBookStore } from "../stores/book";
 import { useCartStore } from "../stores/cart";
+import { useToast } from "../composables/useToast";
 import http from "../api/axios";
+import Pagination from "../components/Pagination.vue";
 
 const bookStore = useBookStore();
 const cartStore = useCartStore();
+const toast = useToast();
 
 /* DATA */
 const books = computed(() => bookStore.items);
@@ -192,7 +188,8 @@ const fetch = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(bookStore.total / bookStore.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   bookStore.page = p;
   bookStore.fetch();
 };
@@ -203,7 +200,14 @@ onMounted(() => {
   cartStore.load();
 });
 
-const addToCart = (book) => cartStore.add(book.MaSach);
+const addToCart = async (book) => {
+  try {
+    await cartStore.add(book.MaSach);
+    toast.success(`Đã thêm "${book.TenSach}" vào giỏ`);
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi thêm vào giỏ');
+  }
+};
 
 const clearFilters = () => {
   keyword.value = "";

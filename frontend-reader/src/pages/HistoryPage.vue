@@ -70,6 +70,18 @@
               {{ h.NgayTra ? format(h.NgayTra) : "Chưa trả" }}
             </div>
 
+            <!-- TIỀN PHẠT -->
+            <div v-if="h.TienPhat && h.TienPhat > 0" class="small">
+              <span class="fw-semibold text-danger">Tiền phạt:</span>
+              <span class="text-danger fw-bold">{{ formatCurrency(h.TienPhat) }}</span>
+              
+              <!-- CHI TIẾT NẾu CÓ 2 KHOẢN -->
+              <div v-if="hasMultipleFines(h)" class="text-muted" style="font-size: 11px; margin-left: 10px;">
+                • Trễ hạn: {{ formatCurrency(getLateFine(h)) }}<br>
+                • {{ getDamageFineLabel(h) }}: {{ formatCurrency(getDamageFine(h)) }}
+              </div>
+            </div>
+
             <span class="badge mt-2" :class="statusColor(h.TrangThai)">
               {{ h.TrangThai }}
             </span>
@@ -80,24 +92,13 @@
     </div>
 
     <!-- PAGINATION -->
-    <div class="d-flex justify-content-center align-items-center mt-3 gap-2">
-      <button
-        class="btn btn-outline-secondary"
-        :disabled="store.page === 1"
-        @click="changePage(store.page - 1)"
-      >
-        «
-      </button>
-
-      <span>Trang {{ store.page }}</span>
-
-      <button
-        class="btn btn-outline-secondary"
-        :disabled="store.page * store.limit >= store.total"
-        @click="changePage(store.page + 1)"
-      >
-        »
-      </button>
+    <div class="mt-4">
+      <Pagination
+        :page="store.page"
+        :limit="store.limit"
+        :total="store.total"
+        @change="changePage"
+      />
     </div>
 
   </div>
@@ -106,6 +107,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useHistoryStore } from "../stores/history";
+import Pagination from "../components/Pagination.vue";
 
 const store = useHistoryStore();
 
@@ -117,12 +119,49 @@ const reload = () => {
 };
 
 const changePage = (p) => {
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
 
 const format = (d) =>
   d ? new Date(d).toLocaleDateString("vi-VN") : "-";
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
+/* KIỂM TRA CÓ 2 KHOẢN PHẠT */
+const hasMultipleFines = (record) => {
+  if (!record.NgayTra || !record.HanTra) return false;
+  const hanTra = new Date(record.HanTra);
+  const ngayTra = new Date(record.NgayTra);
+  return ngayTra > hanTra && ['Hư hỏng', 'Mất sách', 'Đã bồi thường'].includes(record.TrangThai);
+};
+
+/* TÍNH TIỀN PHẠT TRỄ HẠN */
+const getLateFine = (record) => {
+  const hanTra = new Date(record.HanTra);
+  const ngayTra = new Date(record.NgayTra);
+  const daysLate = Math.ceil((ngayTra - hanTra) / 86400000);
+  return daysLate * 5000;
+};
+
+/* TÍNH TIỀN PHẠT HƯ HỌNG/MẤT */
+const getDamageFine = (record) => {
+  return (record.TienPhat || 0) - getLateFine(record);
+};
+
+/* NHÃN CHO KHOẢN PHẠT HƯ HỌNG/MẤT */
+const getDamageFineLabel = (record) => {
+  if (record.TrangThai === 'Hư hỏng') {
+    return `Hư hỏng (${record.MucDoHuHong || '?'})`;
+  } else if (['Mất sách', 'Đã bồi thường'].includes(record.TrangThai)) {
+    return 'Mất sách';
+  }
+  return '';
+};
 
 const statusColor = (s) => {
   switch (s) {

@@ -16,7 +16,6 @@ import CategoryPage from "../pages/categories/CategoryPage.vue";
 import ReaderPage from "../pages/readers/ReaderPage.vue";
 import BorrowPage from "../pages/borrows/BorrowPage.vue";
 import EmployeePage from "../pages/employees/EmployeePage.vue";
-import StatisticsPage from "../pages/statistics/StatisticsPage.vue";
 import RequestPage from "../pages/requests/RequestPage.vue";
 const routes = [
   {
@@ -46,7 +45,6 @@ const routes = [
       { path: "readers", name: "readers", component: ReaderPage },
       { path: "borrows", name: "borrows", component: BorrowPage },
       { path: "employees", name: "employees", component: EmployeePage },
-      { path: "statistics", name: "statistics", component: StatisticsPage },
       { path: "requests", name: "requests", component: RequestPage },
     ],
   },

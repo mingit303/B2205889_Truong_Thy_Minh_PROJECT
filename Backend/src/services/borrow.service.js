@@ -226,10 +226,21 @@ exports.reportDamaged = async (id, data) => {
   const heavy = await getCfg("TY_LE_PHAT_HU_HONG_NANG", 70);
 
   r.MucDoHuHong = data.MucDoHuHong;
-  r.LyDoXuPhat = data.LyDoXuPhat || "Sách hư hỏng";
-
+  
+  // Tính tiền phạt hư hỏng
   const perc = data.MucDoHuHong === "Nhẹ" ? light : heavy;
-  r.TienPhat = Math.round((book.DonGia * perc) / 100);
+  const damagePrice = Math.round((book.DonGia * perc) / 100);
+  
+  // CỘNG DỒN với tiền phạt trễ hạn (nếu có)
+  const previousFine = r.TienPhat || 0;
+  r.TienPhat = previousFine + damagePrice;
+  
+  // Cập nhật lý do xử phạt
+  if (previousFine > 0) {
+    r.LyDoXuPhat = `Trễ hạn + Sách hư hỏng (${data.MucDoHuHong})`;
+  } else {
+    r.LyDoXuPhat = data.LyDoXuPhat || `Sách hư hỏng (${data.MucDoHuHong})`;
+  }
 
   r.TrangThai = "Hư hỏng";
   r.NgayTra = new Date(); // xử lý xong
@@ -257,9 +268,21 @@ exports.reportLost = async (id, data) => {
   const fee = await getCfg("PHI_XU_LY_MAT_SACH", 50000);
 
   r.MucDoHuHong = "Mất";
-  r.LyDoXuPhat = data.LyDoXuPhat || "Mất sách";
-
-  r.TienPhat = Math.round((book.DonGia * lostRate) / 100) + fee;
+  
+  // Tính tiền phạt mất sách
+  const lostPrice = Math.round((book.DonGia * lostRate) / 100) + fee;
+  
+  // CỘNG DỒN với tiền phạt trễ hạn (nếu có)
+  const previousFine = r.TienPhat || 0;
+  r.TienPhat = previousFine + lostPrice;
+  
+  // Cập nhật lý do xử phạt
+  if (previousFine > 0) {
+    r.LyDoXuPhat = "Trễ hạn + Mất sách";
+  } else {
+    r.LyDoXuPhat = data.LyDoXuPhat || "Mất sách";
+  }
+  
   r.TrangThai = "Mất sách";
   r.NgayTra = new Date();
 

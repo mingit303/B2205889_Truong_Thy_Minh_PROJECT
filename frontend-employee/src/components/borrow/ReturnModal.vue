@@ -5,7 +5,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">
-              <i class="fa-solid fa-rotate-left me-2"></i>
+              <font-awesome-icon icon="rotate-left" class="me-2" />
               Trả sách
             </h5>
             <button type="button" class="btn-close" @click="close"></button>
@@ -56,8 +56,10 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
+import { useToast } from "../../composables/useToast";
 
 const store = useBorrowStore();
+const toast = useToast();
 
 const visible = ref(false);
 const loading = ref(false);
@@ -89,9 +91,10 @@ const handleConfirm = async () => {
   try {
     loading.value = true;
     await store.returnBook(record.value._id);
+    toast.success("Trả sách thành công!");
     close();
   } catch (err) {
-    alert(err?.response?.data?.message || "Lỗi trả sách");
+    toast.error(err?.response?.data?.message || "Lỗi trả sách");
   } finally {
     loading.value = false;
   }

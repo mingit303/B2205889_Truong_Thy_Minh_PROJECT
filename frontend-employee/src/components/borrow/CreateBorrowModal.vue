@@ -7,7 +7,7 @@
           <form @submit.prevent="handleSubmit">
             <div class="modal-header">
               <h5 class="modal-title">
-                <i class="fa-solid fa-plus me-2"></i>
+                <font-awesome-icon icon="plus" class="me-2" />
                 Tạo phiếu mượn
               </h5>
               <button type="button" class="btn-close" @click="close"></button>
@@ -15,24 +15,28 @@
 
             <div class="modal-body">
               <div class="mb-3">
-                <label class="form-label">Mã độc giả (MaDocGia)</label>
+                <label class="form-label">Mã độc giả (MaDocGia) *</label>
                 <input
                   v-model="form.MaDocGia"
                   type="text"
                   class="form-control"
                   placeholder="VD: DG001"
                   required
+                  minlength="3"
+                  maxlength="20"
                 />
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Mã sách (MaSach)</label>
+                <label class="form-label">Mã sách (MaSach) *</label>
                 <input
                   v-model="form.MaSach"
                   type="text"
                   class="form-control"
                   placeholder="VD: S001"
                   required
+                  minlength="2"
+                  maxlength="20"
                 />
               </div>
 
@@ -71,8 +75,10 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
+import { useToast } from "../../composables/useToast";
 
 const store = useBorrowStore();
+const toast = useToast();
 const visible = ref(false);
 const loading = ref(false);
 
@@ -101,9 +107,10 @@ const handleSubmit = async () => {
       MaDocGia: form.MaDocGia.trim(),
       MaSach: form.MaSach.trim(),
     });
+    toast.success("Tạo phiếu mượn thành công!");
     close();
   } catch (err) {
-    alert(err?.response?.data?.message || "Lỗi tạo phiếu mượn");
+    toast.error(err?.response?.data?.message || "Lỗi tạo phiếu mượn");
   } finally {
     loading.value = false;
   }

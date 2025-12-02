@@ -10,7 +10,7 @@
 
       <button class="btn btn-outline-danger btn-sm"
               @click="printOverview">
-        <i class="fa-solid fa-file-pdf me-1"></i> Xuất PDF
+        <font-awesome-icon icon="file-pdf" class="me-1" /> Xuất PDF
       </button>
     </div>
 
@@ -45,7 +45,7 @@
           <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <span class="fw-bold">Top 5 sách mượn nhiều nhất</span>
             <button class="btn btn-sm btn-outline-danger" @click="printTop">
-              <i class="fa-solid fa-file-pdf"></i>
+              <font-awesome-icon icon="file-pdf" />
             </button>
           </div>
 
@@ -70,7 +70,7 @@
           <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <span class="fw-bold">Top 5 độc giả mượn nhiều nhất</span>
             <button class="btn btn-sm btn-outline-danger" @click="printTop">
-              <i class="fa-solid fa-file-pdf"></i>
+              <font-awesome-icon icon="file-pdf" />
             </button>
           </div>
 
@@ -109,7 +109,7 @@
                      @change="store.loadBorrowReturn()" />
 
               <button class="btn btn-sm btn-outline-danger" @click="printBorrowReturn">
-                <i class="fa-solid fa-file-pdf"></i>
+                <font-awesome-icon icon="file-pdf" />
               </button>
             </div>
           </div>
@@ -136,7 +136,7 @@
                      @change="store.loadBorrowReturn()" />
 
               <button class="btn btn-sm btn-outline-danger" @click="printBorrowReturn">
-                <i class="fa-solid fa-file-pdf"></i>
+                <font-awesome-icon icon="file-pdf" />
               </button>
             </div>
           </div>
@@ -171,7 +171,7 @@
 
               <button class="btn btn-sm btn-outline-danger"
                       @click="printStatus">
-                <i class="fa-solid fa-file-pdf"></i>
+                <font-awesome-icon icon="file-pdf" />
               </button>
             </div>
           </div>
@@ -213,7 +213,7 @@
 
           <button class="btn btn-sm btn-outline-danger"
                   @click="printFines">
-            <i class="fa-solid fa-file-pdf"></i>
+            <font-awesome-icon icon="file-pdf" />
           </button>
 
         </div>

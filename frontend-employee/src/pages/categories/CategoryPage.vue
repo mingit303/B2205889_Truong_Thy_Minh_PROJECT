@@ -2,12 +2,12 @@
   <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-tags me-2"></i>
+        <font-awesome-icon icon="tags" class="me-2" />
         Thể loại
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm thể loại
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm thể loại
       </button>
     </div>
 
@@ -48,10 +48,10 @@
               <td>{{ c.TenTheLoai }}</td>
               <td class="text-center">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(c)">
-                  <i class="fa-solid fa-pen"></i>
+                  <font-awesome-icon icon="pen" />
                 </button>
                 <button class="btn btn-sm btn-outline-danger" @click="remove(c)">
-                  <i class="fa-solid fa-trash"></i>
+                  <font-awesome-icon icon="trash" />
                 </button>
               </td>
             </tr>
@@ -64,25 +64,13 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <nav>
-          <ul class="pagination mb-0">
-            <li class="page-item" :class="{ disabled: store.page === 1 }">
-              <button class="page-link" @click="changePage(store.page - 1)">«</button>
-            </li>
-
-            <li class="page-item disabled">
-              <span class="page-link">Trang {{ store.page }}</span>
-            </li>
-
-            <li
-              class="page-item"
-              :class="{ disabled: store.page * store.limit >= store.total }"
-            >
-              <button class="page-link" @click="changePage(store.page + 1)">»</button>
-            </li>
-          </ul>
-        </nav>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
@@ -99,12 +87,27 @@
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Mã thể loại *</label>
-                <input v-model="form.MaTheLoai" class="form-control" :disabled="editing" required />
+                <input 
+                  v-model="form.MaTheLoai" 
+                  type="text"
+                  class="form-control" 
+                  :disabled="editing" 
+                  required 
+                  minlength="2"
+                  maxlength="20"
+                />
               </div>
 
               <div class="mb-0">
                 <label class="form-label">Tên thể loại *</label>
-                <input v-model="form.TenTheLoai" class="form-control" required />
+                <input 
+                  v-model="form.TenTheLoai" 
+                  type="text"
+                  class="form-control" 
+                  required 
+                  minlength="2"
+                  maxlength="100"
+                />
               </div>
             </div>
 
@@ -122,9 +125,14 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { useCategoryStore } from "../../stores/category";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
+import Pagination from "../../components/Pagination.vue";
 import * as bootstrap from "bootstrap";
 
 const store = useCategoryStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const modalRef = ref(null);
 let modal = null;
 
@@ -147,7 +155,8 @@ const handleSearch = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -167,17 +176,29 @@ const openEdit = (c) => {
 };
 
 const submitForm = async () => {
-  if (editing.value) {
-    await store.update(form.MaTheLoai, form);
-  } else {
-    await store.create(form);
+  try {
+    if (editing.value) {
+      await store.update(form.MaTheLoai, form);
+      toast.success('Đã cập nhật thể loại');
+    } else {
+      await store.create(form);
+      toast.success('Đã thêm thể loại mới');
+    }
+    modal.hide();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi lưu thể loại');
   }
-  modal.hide();
 };
 
 const remove = async (c) => {
-  if (confirm(`Xóa thể loại "${c.TenTheLoai}"?`)) {
+  try {
+    await confirm(`Xóa thể loại "${c.TenTheLoai}"?`);
     await store.remove(c.MaTheLoai);
+    toast.success('Đã xóa thể loại');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa thể loại');
+    }
   }
 };
 </script>

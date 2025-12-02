@@ -3,10 +3,10 @@
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-book me-2"></i> Quản lý sách
+        <font-awesome-icon icon="book" class="me-2" /> Quản lý sách
       </h3>
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm sách
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm sách
       </button>
     </div>
 
@@ -68,10 +68,10 @@
 
           <div class="col-md-3 text-end">
             <button class="btn btn-outline-secondary me-2" @click="resetFilter">
-              <i class="fa-solid fa-rotate-left me-1"></i> Reset
+              <font-awesome-icon icon="rotate-left" class="me-1" /> Reset
             </button>
             <button class="btn btn-primary" @click="store.fetch">
-              <i class="fa-solid fa-magnifying-glass me-1"></i> Lọc
+              <font-awesome-icon icon="magnifying-glass" class="me-1" /> Lọc
             </button>
           </div>
         </div>
@@ -131,13 +131,13 @@
                   class="btn btn-sm btn-outline-primary me-1"
                   @click="openEdit(b)"
                 >
-                  <i class="fa-solid fa-pen"></i>
+                  <font-awesome-icon icon="pen" />
                 </button>
                 <button
                   class="btn btn-sm btn-outline-danger"
                   @click="confirmDelete(b)"
                 >
-                  <i class="fa-solid fa-trash"></i>
+                  <font-awesome-icon icon="trash" />
                 </button>
               </td>
             </tr>
@@ -146,27 +146,13 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <ul class="pagination mb-0">
-          <li class="page-item" :class="{ disabled: store.page === 1 }">
-            <button class="page-link" @click="changePage(store.page - 1)">
-              «
-            </button>
-          </li>
-
-          <li class="page-item disabled">
-            <span class="page-link">Trang {{ store.page }}</span>
-          </li>
-
-          <li
-            class="page-item"
-            :class="{ disabled: store.page * store.limit >= store.total }"
-          >
-            <button class="page-link" @click="changePage(store.page + 1)">
-              »
-            </button>
-          </li>
-        </ul>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
@@ -193,15 +179,25 @@
                   <label class="form-label">Mã sách *</label>
                   <input
                     v-model="form.MaSach"
+                    type="text"
                     class="form-control"
                     :disabled="editing"
                     required
+                    minlength="2"
+                    maxlength="20"
                   />
                 </div>
 
                 <div class="col-md-8">
                   <label class="form-label">Tên sách *</label>
-                  <input v-model="form.TenSach" class="form-control" required />
+                  <input 
+                    v-model="form.TenSach" 
+                    type="text"
+                    class="form-control" 
+                    required 
+                    minlength="2"
+                    maxlength="200"
+                  />
                 </div>
 
                 <div class="col-md-4">
@@ -319,12 +315,17 @@
 <script setup>
 import { reactive, ref, onMounted } from "vue";
 import { useBookStore } from "../../stores/book";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
 import { categoryApi } from "../../api/categoryApi";
 import { publisherApi } from "../../api/publisherApi";
 import { authorApi } from "../../api/authorApi";
+import Pagination from "../../components/Pagination.vue";
 import * as bootstrap from "bootstrap";
 
 const store = useBookStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const categories = ref([]);
 const publishers = ref([]);
 const authors = ref([]);
@@ -388,8 +389,10 @@ const resetFilter = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
-  store.setPage(p);
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
+  store.page = p;
+  store.fetch();
 };
 
 const openCreate = () => {
@@ -468,8 +471,10 @@ const submitForm = async () => {
   try {
     if (editing.value) {
       await store.update(form._id, fd, true);
+      toast.success('Đã cập nhật sách');
     } else {
       await store.create(fd, true);
+      toast.success('Đã thêm sách mới');
     }
 
     // 🔥 Reset input file sau submit
@@ -480,13 +485,20 @@ const submitForm = async () => {
     modalInstance.hide();
   } catch (err) {
     console.error(err);
-    alert(err.response?.data?.message || "Không thể lưu sách");
+    toast.error(err.response?.data?.message || "Không thể lưu sách");
   }
 };
 
 const confirmDelete = async (book) => {
-  if (!confirm(`Xóa sách "${book.TenSach}"?`)) return;
-  await store.remove(book._id);
+  try {
+    await confirm(`Xóa sách "${book.TenSach}"?`);
+    await store.remove(book._id);
+    toast.success('Đã xóa sách');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa sách');
+    }
+  }
 };
 
 const formatPrice = (v) => {

@@ -1,6 +1,9 @@
 <template>
-  <div class="container py-3">
-    <h3 class="mb-3">Yêu cầu mượn sách</h3>
+  <div class="container-fluid py-3">
+    <h3 class="mb-3">
+      <font-awesome-icon icon="envelope-open-text" class="me-2" />
+      Yêu cầu mượn sách
+    </h3>
 
     <!-- FILTER -->
     <div class="card mb-3 p-3">
@@ -18,93 +21,140 @@
 
     <!-- TABLE -->
     <div class="card">
-      <table class="table mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 50px">#</th>
-            <th>Độc giả</th>
-            <th>Sách</th>
-            <th>Trạng thái</th>
-            <th>Ngày yêu cầu</th>
-            <th class="text-center" style="width:160px">Thao tác</th>
-          </tr>
-        </thead>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 50px">#</th>
+              <th>Độc giả</th>
+              <th>Sách</th>
+              <th>Trạng thái</th>
+              <th>Ngày yêu cầu</th>
+              <th class="text-center" style="width:160px">Thao tác</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          <tr v-for="(r, idx) in store.items" :key="r._id">
-            <td>{{ (store.page - 1) * store.limit + idx + 1 }}</td>
+          <tbody>
+            <tr v-for="(r, idx) in store.items" :key="r._id">
+              <td>{{ (store.page - 1) * store.limit + idx + 1 }}</td>
 
-            <td class="fw-bold">{{ r.MaDocGia }}</td>
+              <td class="fw-bold">{{ r.MaDocGia }}</td>
 
-            <!-- BOOK LIST -->
-            <td>
-              <details>
-                <summary class="text-primary" style="cursor:pointer">
+              <!-- BOOK LIST -->
+              <td>
+                <button 
+                  class="btn btn-sm btn-outline-primary" 
+                  @click="showBooks(r)"
+                  type="button"
+                >
+                  <font-awesome-icon icon="eye" class="me-1" />
                   {{ r.Sach.length }} sách
-                </summary>
-
-                <ul class="list-group mt-2">
-                  <li
-                    v-for="book in r.Sach"
-                    :key="book._id || book.MaSach"
-                    class="list-group-item small"
-                  >
-                    <strong>{{ book.MaSach }} - {{ book.TenSach }}</strong>
-                    <div class="text-muted">Tác giả: {{ book.MaTacGia?.TenTacGia }}</div>
-                    <div class="text-muted">NXB: {{ book.MaNXB?.TenNXB }}</div>
-                  </li>
-                </ul>
-              </details>
-            </td>
-
-            <td>
-              <span class="badge" :class="badge(r.TrangThai)">
-                {{ convertStatus(r.TrangThai) }}
-              </span>
-            </td>
-
-            <td>{{ formatDate(r.createdAt) }}</td>
-
-            <td class="text-center">
-              <template v-if="r.TrangThai === 'CHO_DUYET'">
-                <button class="btn btn-sm btn-success me-1" @click="approve(r._id)">
-                  <i class="fa-solid fa-check"></i>
                 </button>
+              </td>
 
-                <button class="btn btn-sm btn-danger" @click="reject(r._id)">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </template>
-              <span v-else class="text-muted">—</span>
-            </td>
-          </tr>
+              <td>
+                <span class="badge" :class="badge(r.TrangThai)">
+                  {{ convertStatus(r.TrangThai) }}
+                </span>
+              </td>
 
-          <tr v-if="store.items.length === 0">
-            <td colspan="6" class="text-center py-3">Không có yêu cầu</td>
-          </tr>
-        </tbody>
-      </table>
+              <td>{{ formatDate(r.createdAt) }}</td>
+
+              <td class="text-center">
+                <template v-if="r.TrangThai === 'CHO_DUYET'">
+                  <button class="btn btn-sm btn-success me-1" @click="approve(r._id)">
+                    <font-awesome-icon icon="check" />
+                  </button>
+
+                  <button class="btn btn-sm btn-danger" @click="reject(r._id)">
+                    <font-awesome-icon icon="xmark" />
+                  </button>
+                </template>
+                <span v-else class="text-muted">—</span>
+              </td>
+            </tr>
+
+            <tr v-if="store.items.length === 0">
+              <td colspan="6" class="text-center py-3">Không có yêu cầu</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION -->
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
+      </div>
     </div>
 
-    <!-- PAGINATION -->
-    <Pagination
-  :page="store.page"
-  :limit="store.limit"
-  :total="store.total"
-  @change="changePage"
-/>
-
+    <!-- MODAL: Book List -->
+    <div class="modal fade" id="bookModal" tabindex="-1" ref="bookModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon icon="book" class="me-2" />
+              Danh sách sách yêu cầu
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="selectedRequest">
+              <p class="mb-2">
+                <strong>Độc giả:</strong> {{ selectedRequest.MaDocGia }}
+              </p>
+              <ul class="list-group">
+                <li
+                  v-for="book in selectedRequest.Sach"
+                  :key="book._id || book.MaSach"
+                  class="list-group-item"
+                >
+                  <div class="fw-bold">{{ book.MaSach }} - {{ book.TenSach }}</div>
+                  <small class="text-muted">Tác giả: {{ book.MaTacGia?.TenTacGia }}</small><br>
+                  <small class="text-muted">NXB: {{ book.MaNXB?.TenNXB }}</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRequestStore } from "../../stores/request";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
 import Pagination from "../../components/Pagination.vue";
-const store = useRequestStore();
+import { Modal } from "bootstrap";
 
-onMounted(() => store.fetch());
+const store = useRequestStore();
+const { confirm } = useConfirm();
+const toast = useToast();
+const bookModal = ref(null);
+const selectedRequest = ref(null);
+let modalInstance = null;
+
+onMounted(() => {
+  store.fetch();
+  modalInstance = new Modal(bookModal.value);
+});
+
+const showBooks = (request) => {
+  selectedRequest.value = request;
+  modalInstance.show();
+};
 
 const reload = () => {
   store.page = 1;
@@ -112,21 +162,35 @@ const reload = () => {
 };
 
 const changePage = (p) => {
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
 
 /* APPROVE */
 const approve = async (id) => {
-  if (!confirm("Xác nhận duyệt yêu cầu mượn này?")) return;
-  await store.approve(id);
+  try {
+    await confirm("Xác nhận duyệt yêu cầu mượn này?");
+    await store.approve(id);
+    toast.success('Đã duyệt yêu cầu');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi duyệt yêu cầu');
+    }
+  }
 };
 
 /* REJECT */
 const reject = async (id) => {
   const reason = prompt("Nhập lý do từ chối:");
   if (!reason) return;
-  await store.reject(id, reason);
+  try {
+    await store.reject(id, reason);
+    toast.success('Đã từ chối yêu cầu');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi từ chối yêu cầu');
+  }
 };
 
 /* BADGE COLOR */

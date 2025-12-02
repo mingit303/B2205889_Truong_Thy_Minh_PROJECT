@@ -2,12 +2,12 @@
   <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-pen-nib me-2"></i>
+        <font-awesome-icon icon="pen-nib" class="me-2" />
         Tác giả
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm tác giả
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm tác giả
       </button>
     </div>
 
@@ -51,10 +51,10 @@
               <td>{{ a.TenTacGia }}</td>
               <td class="text-center">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(a)">
-                  <i class="fa-solid fa-pen"></i>
+                  <font-awesome-icon icon="pen" />
                 </button>
                 <button class="btn btn-sm btn-outline-danger" @click="remove(a)">
-                  <i class="fa-solid fa-trash"></i>
+                  <font-awesome-icon icon="trash" />
                 </button>
               </td>
             </tr>
@@ -67,25 +67,13 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <nav>
-          <ul class="pagination mb-0">
-            <li class="page-item" :class="{ disabled: store.page === 1 }">
-              <button class="page-link" @click="changePage(store.page - 1)">«</button>
-            </li>
-
-            <li class="page-item disabled">
-              <span class="page-link">Trang {{ store.page }}</span>
-            </li>
-
-            <li
-              class="page-item"
-              :class="{ disabled: store.page * store.limit >= store.total }"
-            >
-              <button class="page-link" @click="changePage(store.page + 1)">»</button>
-            </li>
-          </ul>
-        </nav>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
@@ -101,10 +89,25 @@
 
             <div class="modal-body">
               <label class="form-label">Mã tác giả *</label>
-              <input v-model="form.MaTacGia" class="form-control" :disabled="editing" required />
+              <input 
+                v-model="form.MaTacGia" 
+                type="text"
+                class="form-control" 
+                :disabled="editing" 
+                required 
+                minlength="2"
+                maxlength="20"
+              />
 
               <label class="form-label mt-3">Tên tác giả *</label>
-              <input v-model="form.TenTacGia" class="form-control" required />
+              <input 
+                v-model="form.TenTacGia" 
+                type="text"
+                class="form-control" 
+                required 
+                minlength="2"
+                maxlength="100"
+              />
             </div>
 
             <div class="modal-footer">
@@ -121,9 +124,14 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { useAuthorStore } from "../../stores/author";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
+import Pagination from "../../components/Pagination.vue";
 import * as bootstrap from "bootstrap";
 
 const store = useAuthorStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 const modalRef = ref(null);
 let modal = null;
 
@@ -145,7 +153,8 @@ const handleSearch = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -165,18 +174,29 @@ const openEdit = (a) => {
 };
 
 const submitForm = async () => {
-  if (editing.value) {
-    await store.update(form.MaTacGia, form);
-  } else {
-    await store.create(form);
+  try {
+    if (editing.value) {
+      await store.update(form.MaTacGia, form);
+      toast.success('Đã cập nhật tác giả');
+    } else {
+      await store.create(form);
+      toast.success('Đã thêm tác giả mới');
+    }
+    modal.hide();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi lưu tác giả');
   }
-
-  modal.hide();
 };
 
 const remove = async (a) => {
-  if (confirm(`Xóa tác giả "${a.TenTacGia}"?`)) {
+  try {
+    await confirm(`Xóa tác giả "${a.TenTacGia}"?`);
     await store.remove(a.MaTacGia);
+    toast.success('Đã xóa tác giả');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa tác giả');
+    }
   }
 };
 </script>

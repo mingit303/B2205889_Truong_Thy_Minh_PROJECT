@@ -2,12 +2,12 @@
   <div class="container-fluid py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">
-        <i class="fa-solid fa-user-tie me-2"></i>
+        <font-awesome-icon icon="user-tie" class="me-2" />
         Quản lý nhân viên
       </h3>
 
       <button class="btn btn-success" @click="openCreate">
-        <i class="fa-solid fa-plus me-1"></i> Thêm nhân viên
+        <font-awesome-icon icon="plus" class="me-1" /> Thêm nhân viên
       </button>
     </div>
 
@@ -105,7 +105,7 @@
 
                   <!-- EDIT luôn được phép -->
                   <button class="btn btn-outline-primary" @click="openEdit(nv)">
-                    <i class="fa-solid fa-pen"></i>
+                    <font-awesome-icon icon="pen" />
                   </button>
 
                   <!-- KHÓA / MỞ KHÓA — chỉ cho Admin/Employee -->
@@ -114,8 +114,8 @@
                     @click="toggleStatus(nv)"
                     v-if="nv.VaiTro !== 'SUPERADMIN'"
                   >
-                    <i class="fa-solid fa-lock-open" v-if="nv.TrangThai === 1"></i>
-                    <i class="fa-solid fa-lock" v-else></i>
+                    <font-awesome-icon icon="lock-open" v-if="nv.TrangThai === 1" />
+                    <font-awesome-icon icon="lock" v-else />
                   </button>
 
                   <!-- XÓA — cũng chỉ cho Admin/Employee -->
@@ -124,7 +124,7 @@
                     @click="remove(nv)"
                     v-if="nv.VaiTro !== 'SUPERADMIN'"
                   >
-                    <i class="fa-solid fa-trash"></i>
+                    <font-awesome-icon icon="trash" />
                   </button>
 
                 </div>
@@ -140,29 +140,19 @@
       </div>
 
       <!-- PAGINATION -->
-      <div class="card-footer d-flex justify-content-end">
-        <ul class="pagination mb-0">
-          <li class="page-item" :class="{ disabled: store.page === 1 }">
-            <button class="page-link" @click="changePage(store.page - 1)">«</button>
-          </li>
-
-          <li class="page-item disabled">
-            <span class="page-link">Trang {{ store.page }}</span>
-          </li>
-
-          <li
-            class="page-item"
-            :class="{ disabled: store.page * store.limit >= store.total }"
-          >
-            <button class="page-link" @click="changePage(store.page + 1)">»</button>
-          </li>
-        </ul>
+      <div class="card-footer">
+        <Pagination
+          :page="store.page"
+          :limit="store.limit"
+          :total="store.total"
+          @change="changePage"
+        />
       </div>
     </div>
 
     <!-- MODAL -->
     <div class="modal fade" id="employeeModal" tabindex="-1" ref="modalRef">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <form @submit.prevent="submitForm">
             <div class="modal-header">
@@ -172,44 +162,73 @@
 
             <div class="modal-body">
 
-              <div class="mb-3">
-                <label class="form-label">Mã nhân viên *</label>
-                <input
-                  v-model="form.MSNV"
-                  class="form-control"
-                  :disabled="editing"
-                  required
-                />
-              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Mã nhân viên *</label>
+                  <input
+                    v-model="form.MSNV"
+                    type="text"
+                    class="form-control"
+                    :disabled="editing"
+                    required
+                    minlength="3"
+                    maxlength="20"
+                  />
+                </div>
 
-              <div class="mb-3">
-                <label class="form-label">Họ tên *</label>
-                <input v-model="form.HoTenNV" class="form-control" required />
-              </div>
+                <div class="col-md-6">
+                  <label class="form-label">Họ tên *</label>
+                  <input 
+                    v-model="form.HoTenNV" 
+                    type="text"
+                    class="form-control" 
+                    required 
+                    minlength="2"
+                    maxlength="100"
+                  />
+                </div>
 
-              <div class="mb-3">
-                <label class="form-label">Chức vụ</label>
-                <input v-model="form.ChucVu" class="form-control" />
-              </div>
+                <div class="col-md-6">
+                  <label class="form-label">Chức vụ</label>
+                  <input 
+                    v-model="form.ChucVu" 
+                    type="text"
+                    class="form-control" 
+                    maxlength="50"
+                  />
+                </div>
 
-              <div class="mb-3">
-                <label class="form-label">Số điện thoại</label>
-                <input v-model="form.SoDienThoai" class="form-control" />
-              </div>
+                <div class="col-md-6">
+                  <label class="form-label">Số điện thoại</label>
+                  <input 
+                    v-model="form.SoDienThoai" 
+                    type="tel"
+                    class="form-control" 
+                    pattern="[0-9]{10,11}"
+                    title="Số điện thoại phải có 10-11 chữ số"
+                  />
+                </div>
 
-              <div class="mb-3">
-                <label class="form-label">Địa chỉ</label>
-                <input v-model="form.DiaChi" class="form-control" />
-              </div>
+                <div class="col-12">
+                  <label class="form-label">Địa chỉ</label>
+                  <textarea 
+                    v-model="form.DiaChi" 
+                    class="form-control" 
+                    rows="2"
+                    maxlength="200"
+                  ></textarea>
+                </div>
 
-              <div class="mb-3" v-if="!editing">
-                <label class="form-label">Mật khẩu *</label>
-                <input
-                  type="password"
-                  v-model="form.Password"
-                  class="form-control"
-                  required
-                />
+                <div class="col-12" v-if="!editing">
+                  <label class="form-label">Mật khẩu *</label>
+                  <input
+                    type="password"
+                    v-model="form.Password"
+                    class="form-control"
+                    required
+                    minlength="6"
+                  />
+                </div>
               </div>
 
             </div>
@@ -233,8 +252,13 @@
 import { reactive, ref, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import { useEmployeeStore } from "../../stores/employee";
+import { useConfirm } from "../../composables/useConfirm";
+import { useToast } from "../../composables/useToast";
+import Pagination from "../../components/Pagination.vue";
 
 const store = useEmployeeStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 
 const modalRef = ref(null);
 let modal = null;
@@ -271,7 +295,8 @@ const resetFilters = () => {
 };
 
 const changePage = (p) => {
-  if (p < 1) return;
+  const maxPage = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > maxPage) return;
   store.page = p;
   store.fetch();
 };
@@ -307,21 +332,38 @@ const openEdit = (nv) => {
 };
 
 const submitForm = async () => {
-  if (editing.value) {
-    await store.update(form.MSNV, form);
-  } else {
-    await store.create(form);
+  try {
+    if (editing.value) {
+      await store.update(form.MSNV, form);
+      toast.success('Đã cập nhật nhân viên');
+    } else {
+      await store.create(form);
+      toast.success('Đã thêm nhân viên mới');
+    }
+    modal.hide();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi lưu nhân viên');
   }
-
-  modal.hide();
 };
 
 const toggleStatus = async (nv) => {
-  await store.toggleStatus(nv.MSNV);
+  try {
+    await store.toggleStatus(nv.MSNV);
+    toast.success('Đã đổi trạng thái');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi đổi trạng thái');
+  }
 };
 
 const remove = async (nv) => {
-  if (!confirm(`Xóa nhân viên ${nv.HoTenNV}?`)) return;
-  await store.remove(nv.MSNV);
+  try {
+    await confirm(`Xóa nhân viên ${nv.HoTenNV}?`);
+    await store.remove(nv.MSNV);
+    toast.success('Đã xóa nhân viên');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa nhân viên');
+    }
+  }
 };
 </script>

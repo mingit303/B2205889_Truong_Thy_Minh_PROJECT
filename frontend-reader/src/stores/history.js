@@ -24,7 +24,7 @@ export const useHistoryStore = defineStore("history", {
       });
 
       this.items = res.data.data;
-      this.total = res.data.total;
+      this.total = res.data.pagination?.total || 0;
       this.loading = false;
     },
   },

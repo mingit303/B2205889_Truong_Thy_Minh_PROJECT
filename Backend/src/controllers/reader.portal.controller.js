@@ -4,6 +4,7 @@ const BorrowRecord = require("../models/BorrowRecord");
 const BorrowRequest = require("../models/BorrowRequest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { success, error, paginate } = require("../utils/response");
 
 // ===============================
 // Helper: tạo token
@@ -174,7 +175,7 @@ exports.getBooks = async (req, res) => {
       Book.countDocuments(filter),
     ]);
 
-    return res.json({ data: items, total });
+    return paginate(res, items, pageNum, limitNum, total, "Lấy danh sách sách thành công");
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -321,12 +322,7 @@ exports.getMyBorrowHistory = async (req, res) => {
         .lean();
     }
 
-    res.json({
-      data: list,
-      total,
-      page,
-      limit
-    });
+    return paginate(res, list, page, limit, total, "Lấy lịch sử mượn sách thành công");
 
   } catch (err) {
     res.status(500).json({ message: err.message });

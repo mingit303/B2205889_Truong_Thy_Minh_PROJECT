@@ -44,9 +44,9 @@ export const useBookStore = defineStore("books", {
         const res = await bookApi.getList(params);
 
         this.items = res.data.data || [];
-        this.page = res.data.page || this.page;
-        this.limit = res.data.limit || this.limit;
-        this.total = res.data.total || 0;
+        this.page = res.data.pagination?.page || this.page;
+        this.limit = res.data.pagination?.limit || this.limit;
+        this.total = res.data.pagination?.total || 0;
       } finally {
         this.loading = false;
       }

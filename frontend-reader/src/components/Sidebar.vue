@@ -85,11 +85,12 @@ const logout = () => {
   position: fixed;
   left: 0;
   top: 0;
-  background: linear-gradient(180deg, #2196f3, #64b5f6);
+  background: #0d6efd;
   color: white;
   padding: 20px 15px;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {

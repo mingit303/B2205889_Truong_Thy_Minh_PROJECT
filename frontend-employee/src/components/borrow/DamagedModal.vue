@@ -6,7 +6,7 @@
           <form @submit.prevent="handleSubmit">
             <div class="modal-header">
               <h5 class="modal-title">
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                <font-awesome-icon icon="triangle-exclamation" class="me-2" />
                 Báo sách hư hỏng
               </h5>
               <button type="button" class="btn-close" @click="close"></button>
@@ -60,12 +60,13 @@
                   class="form-control"
                   rows="3"
                   placeholder="Mô tả tình trạng sách, nguyên nhân hư hỏng..."
+                  maxlength="500"
                 ></textarea>
               </div>
 
               <div class="alert alert-info small mb-0">
                 Tiền phạt sẽ được tính theo cấu hình:
-                <strong>TY_LE_PHAT_HU_HONG_NHE / NANG</strong> và giá bìa sách.
+                <strong>Tỷ lệ phạt hư hỏng nhẹ / nặng</strong> và giá bìa sách.
               </div>
             </div>
 
@@ -98,8 +99,10 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
+import { useToast } from "../../composables/useToast";
 
 const store = useBorrowStore();
+const toast = useToast();
 const visible = ref(false);
 const loading = ref(false);
 const record = ref(null);
@@ -125,7 +128,7 @@ const close = () => {
 const handleSubmit = async () => {
   if (!record.value?._id) return;
   if (!form.MucDoHuHong) {
-    alert("Vui lòng chọn mức độ hư hỏng");
+    toast.warning("Vui lòng chọn mức độ hư hỏng");
     return;
   }
 
@@ -135,9 +138,10 @@ const handleSubmit = async () => {
       MucDoHuHong: form.MucDoHuHong,
       LyDoXuPhat: form.LyDoXuPhat || "",
     });
+    toast.success("Đã báo sách hư hỏng thành công!");
     close();
   } catch (err) {
-    alert(err?.response?.data?.message || "Lỗi xử lý sách hư hỏng");
+    toast.error(err?.response?.data?.message || "Lỗi xử lý sách hư hỏng");
   } finally {
     loading.value = false;
   }

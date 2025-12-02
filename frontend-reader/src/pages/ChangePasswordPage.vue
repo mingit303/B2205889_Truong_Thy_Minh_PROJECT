@@ -22,16 +22,23 @@
 <script setup>
 import { ref } from "vue";
 import http from "../api/axios";
+import { useToast } from "../composables/useToast";
 
+const toast = useToast();
 const oldPass = ref("");
 const newPass = ref("");
 
 const change = async () => {
-  await http.put("/change-password", {
-    oldPass: oldPass.value,
-    newPass: newPass.value,
-  });
-
-  alert("Đổi mật khẩu thành công!");
+  try {
+    await http.put("/change-password", {
+      oldPass: oldPass.value,
+      newPass: newPass.value,
+    });
+    toast.success('Đổi mật khẩu thành công!');
+    oldPass.value = "";
+    newPass.value = "";
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Lỗi đổi mật khẩu');
+  }
 };
 </script>

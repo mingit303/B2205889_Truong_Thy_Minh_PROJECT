@@ -8,6 +8,7 @@
         class="form-control"
         placeholder="Nhập mã nhân viên..."
         required
+        minlength="3"
       />
     </div>
 
@@ -19,6 +20,7 @@
         class="form-control"
         placeholder="Nhập mật khẩu..."
         required
+        minlength="6"
       />
     </div>
 

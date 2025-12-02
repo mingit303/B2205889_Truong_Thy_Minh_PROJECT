@@ -6,7 +6,7 @@
           <form @submit.prevent="handleSubmit">
             <div class="modal-header">
               <h5 class="modal-title">
-                <i class="fa-solid fa-book-dead me-2"></i>
+                <font-awesome-icon icon="book-dead" class="me-2" />
                 Báo mất sách
               </h5>
               <button type="button" class="btn-close" @click="close"></button>
@@ -34,13 +34,14 @@
                   class="form-control"
                   rows="3"
                   placeholder="VD: Mất trên đường đi học, bị rơi không tìm thấy..."
+                  maxlength="500"
                 ></textarea>
               </div>
 
               <div class="alert alert-danger small mb-0">
                 Hệ thống sẽ tính phạt mất sách theo:
-                <strong>TY_LE_PHAT_MAT_SACH</strong> +
-                <strong>PHI_XU_LY_MAT_SACH</strong> và giá bìa sách.
+                <strong>Tỷ lệ phạt mất sách</strong> +
+                <strong>Phí xử lý mất sách</strong> và giá bìa sách.
               </div>
             </div>
 
@@ -73,8 +74,10 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
+import { useToast } from "../../composables/useToast";
 
 const store = useBorrowStore();
+const toast = useToast();
 const visible = ref(false);
 const loading = ref(false);
 const record = ref(null);
@@ -103,9 +106,10 @@ const handleSubmit = async () => {
     await store.reportLost(record.value._id, {
       LyDoXuPhat: form.LyDoXuPhat || "Mất sách",
     });
+    toast.success("Đã báo mất sách thành công!");
     close();
   } catch (err) {
-    alert(err?.response?.data?.message || "Lỗi xử lý mất sách");
+    toast.error(err?.response?.data?.message || "Lỗi xử lý mất sách");
   } finally {
     loading.value = false;
   }

@@ -2,7 +2,7 @@
   <nav class="sidebar d-flex flex-column bg-primary text-white position-fixed top-0 start-0 h-100 shadow">
     <!-- LOGO -->
     <div class="sidebar-header d-flex align-items-center px-3 py-3 border-bottom border-light">
-      <i class="fa-solid fa-book-open-reader me-2 fs-4"></i>
+      <font-awesome-icon icon="book-open-reader" class="me-2 fs-4" />
       <div>
         <div class="fw-bold">QL Mượn Sách</div>
         <small class="text-light opacity-75">Employee Panel</small>
@@ -13,50 +13,50 @@
     <div class="flex-grow-1 mt-2">
       <ul class="nav flex-column">
 <li class="nav-item">
-  <RouterLink to="/statistics" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/statistics') }">
-    <i class="fa-solid fa-chart-line me-2"></i>
-    <span>Thống kê</span>
+  <RouterLink to="/" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/') && route.path === '/' }">
+    <font-awesome-icon icon="chart-line" class="me-2" />
+    <span>Trang chủ</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/books" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/books') }">
-    <i class="fa-solid fa-book me-2"></i>
+    <font-awesome-icon icon="book" class="me-2" />
     <span>Quản lý sách</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/authors" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/authors') }">
-    <i class="fa-solid fa-pen-nib me-2"></i>
+    <font-awesome-icon icon="pen-nib" class="me-2" />
     <span>Tác giả</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/publishers" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/publishers') }">
-    <i class="fa-solid fa-building-columns me-2"></i>
+    <font-awesome-icon icon="building-columns" class="me-2" />
     <span>Nhà xuất bản</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/categories" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/categories') }">
-    <i class="fa-solid fa-tags me-2"></i>
+    <font-awesome-icon icon="tags" class="me-2" />
     <span>Thể loại</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/readers" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/readers') }">
-    <i class="fa-solid fa-users me-2"></i>
+    <font-awesome-icon icon="users" class="me-2" />
     <span>Độc giả</span>
   </RouterLink>
 </li>
 
 <li class="nav-item">
   <RouterLink to="/borrows" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/borrows') }">
-    <i class="fa-solid fa-book-open me-2"></i>
+    <font-awesome-icon icon="book-open" class="me-2" />
     <span>Phiếu mượn</span>
   </RouterLink>
 </li>
@@ -67,7 +67,7 @@
         class="nav-link text-white d-flex align-items-center px-3"
         :class="{ active: isActive('/requests') }"
       >
-        <i class="fa-solid fa-envelope-open-text me-2"></i>
+        <font-awesome-icon icon="envelope-open-text" class="me-2" />
         <span>Yêu cầu mượn</span>
       </RouterLink>
     </li>
@@ -79,7 +79,7 @@
     class="nav-link text-white d-flex align-items-center px-3"
     :class="{ active: isActive('/employees') }"
   >
-    <i class="fa-solid fa-user-gear me-2"></i>
+    <font-awesome-icon icon="user-gear" class="me-2" />
     <span>Quản lý nhân viên</span>
   </RouterLink>
 </li>
@@ -95,7 +95,7 @@
       <div class="fw-bold mb-2">{{ auth.user?.HoTenNV || "Nhân viên" }}</div>
 
       <button class="btn btn-sm btn-light w-100 text-center" @click="handleLogout">
-        <font-awesome-icon icon="right-to-bracket" />
+        <font-awesome-icon icon="right-from-bracket" class="me-1" />
         Đăng xuất
       </button>
     </div>
