@@ -228,6 +228,9 @@ const statusColor = (s) => {
     case "Đã mượn": return "bg-primary";
     case "Đã trả": return "bg-success";
     case "Trễ hạn": return "bg-danger";
+    case "Hư hỏng": return "bg-warning text-dark";
+    case "Mất sách": return "bg-dark text-white";
+    case "Đã bồi thường": return "bg-secondary";
     default: return "bg-secondary";
   }
 };

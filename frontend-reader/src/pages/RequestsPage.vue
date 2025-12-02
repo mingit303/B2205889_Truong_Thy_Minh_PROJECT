@@ -81,41 +81,43 @@
           :class="{ show: openAccordion === index }"
         >
           <div class="accordion-body">
-            <h6 class="fw-bold mb-2">📘 Danh sách sách đã yêu cầu:</h6>
+            <h6 class="fw-bold mb-2">Danh sách sách đã yêu cầu:</h6>
 
-            <ul class="list-group">
-              <li
-                v-for="(book, i) in r.Sach"
-                :key="i"
-                class="list-group-item d-flex align-items-center gap-3"
-              >
-                <!-- BOOK IMAGE -->
-                <img
-                  :src="book.AnhBia || '/no-book.png'"
-                  class="rounded"
-                  style="width: 65px; height: 85px; object-fit: cover"
-                />
+            <div style="max-height: 400px; overflow-y: auto;">
+              <ul class="list-group">
+                <li
+                  v-for="(book, i) in r.Sach"
+                  :key="i"
+                  class="list-group-item d-flex align-items-center gap-3"
+                >
+                  <!-- BOOK IMAGE -->
+                  <img
+                    :src="book.AnhBia || '/no-book.png'"
+                    class="rounded"
+                    style="width: 65px; height: 85px; object-fit: cover"
+                  />
 
-                <!-- BOOK INFO -->
-                <div class="flex-grow-1">
-                  <div class="fw-semibold">{{ book.TenSach }}</div>
+                  <!-- BOOK INFO -->
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">{{ book.TenSach }}</div>
 
-                  <div class="text-muted small">
-                    Mã: <b>{{ book.MaSach }}</b>
+                    <div class="text-muted small">
+                      Mã: <b>{{ book.MaSach }}</b>
+                    </div>
+
+                    <div class="text-muted small">
+                      Tác giả: <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b>
+                    </div>
+
+                    <div class="text-muted small">
+                      NXB: <b>{{ book.MaNXB?.TenNXB || "Không rõ" }}</b>
+                    </div>
                   </div>
 
-                  <div class="text-muted small">
-                    Tác giả: <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b>
-                  </div>
-
-                  <div class="text-muted small">
-                    NXB: <b>{{ book.MaNXB?.TenNXB || "Không rõ" }}</b>
-                  </div>
-                </div>
-
-                <!-- <span class="badge bg-primary">Sách</span> -->
-              </li>
-            </ul>
+                  <!-- <span class="badge bg-primary">Sách</span> -->
+                </li>
+              </ul>
+            </div>
 
             <!-- NOTE -->
             <div v-if="r.GhiChu" class="mt-3">

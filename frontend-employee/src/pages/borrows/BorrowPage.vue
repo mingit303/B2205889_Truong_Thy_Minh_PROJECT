@@ -352,11 +352,11 @@ const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
 const statusClass = (st) =>
   ({
     "Đã mượn": "bg-primary",
-    "Đã trả": "bg-secondary",
+    "Đã trả": "bg-success",
     "Trễ hạn": "bg-danger",
     "Hư hỏng": "bg-warning text-dark",
-    "Mất sách": "bg-dark",
-    "Đã bồi thường": "bg-success",
+    "Mất sách": "bg-dark text-white",
+    "Đã bồi thường": "bg-secondary",
   }[st] || "bg-light");
 
 /* CALC FINE */
