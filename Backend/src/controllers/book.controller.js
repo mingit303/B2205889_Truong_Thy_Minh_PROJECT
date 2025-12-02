@@ -1,6 +1,7 @@
 const bookService = require("../services/book.service");
 const Book = require("../models/Book");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 const fs = require("fs");
 const path = require("path");
 
@@ -49,6 +50,9 @@ exports.createBook = async (req, res) => {
 
     const book = await bookService.createBook(data);
 
+    // Emit socket event
+    emitSocketEvent(SOCKET_EVENTS.BOOK_ADDED, book);
+
     return success(res, book, "Tạo sách thành công", 201);
   } catch (err) {
     console.error(err);
@@ -78,6 +82,9 @@ exports.updateBook = async (req, res) => {
 
     const updated = await bookService.updateBook(id, dataUpdate);
 
+    // Emit socket event
+    emitSocketEvent(SOCKET_EVENTS.BOOK_UPDATED, updated);
+
     return success(res, updated, "Cập nhật sách thành công");
   } catch (err) {
     console.error(err);
@@ -100,6 +107,9 @@ exports.deleteBook = async (req, res) => {
     }
 
     await book.deleteOne();
+
+    // Emit socket event
+    emitSocketEvent(SOCKET_EVENTS.BOOK_DELETED, { _id: id });
 
     return success(res, null, "Xóa sách thành công");
   } catch (err) {

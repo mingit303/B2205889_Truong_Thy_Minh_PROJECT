@@ -105,15 +105,18 @@
 <script setup>
 import { useRoute, RouterLink, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { useToast } from "../composables/useToast";
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const toast = useToast();
 
 const isActive = (path) => route.path.startsWith(path);
 
 const handleLogout = () => {
   auth.logout();
+  toast.success("Hẹn gặp lại!", "Đã đăng xuất");
   router.push("/login");
 };
 </script>

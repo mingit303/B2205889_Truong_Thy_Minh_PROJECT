@@ -64,9 +64,11 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { useToast } from "../composables/useToast";
 
 const auth = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 const fullName = computed(() =>
   auth.reader ? `${auth.reader.HoLot} ${auth.reader.Ten}` : "Reader"
@@ -74,6 +76,7 @@ const fullName = computed(() =>
 
 const logout = () => {
   auth.logout();
+  toast.success("Đã đăng xuất", "Hẹn gặp lại!");
   router.push("/login");
 };
 </script>

@@ -39,9 +39,11 @@
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
+import { useToast } from "../../composables/useToast";
 
 const auth = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 const form = reactive({
   MSNV: "",
@@ -52,6 +54,7 @@ const onSubmit = async () => {
   try {
     await auth.loginEmployee(form);
     await auth.fetchMe();
+    toast.success("Đăng nhập thành công", `Chào mừng ${auth.employee?.HoTenNV || 'bạn'}!`);
     router.push({ name: "dashboard" });
   } catch (err) {
     // error đã set trong store

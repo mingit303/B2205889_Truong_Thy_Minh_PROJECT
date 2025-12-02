@@ -1,5 +1,6 @@
 const publisherService = require("../services/publisher.service");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 // Lấy danh sách nhà xuất bản
 const getPublishers = async (req, res) => {
@@ -17,6 +18,7 @@ const getPublishers = async (req, res) => {
 const createPublisher = async (req, res) => {
   try {
     const newPublisher = await publisherService.createPublisher(req.body);
+    emitSocketEvent(SOCKET_EVENTS.PUBLISHER_ADDED, newPublisher);
     return success(res, newPublisher, "Tạo nhà xuất bản mới thành công", 201);
   } catch (err) {
     console.error(err);
@@ -29,6 +31,7 @@ const updatePublisher = async (req, res) => {
   try {
     const { id } = req.params;
     const publisher = await publisherService.updatePublisher(id, req.body);
+    emitSocketEvent(SOCKET_EVENTS.PUBLISHER_UPDATED, publisher);
     return success(res, publisher, "Cập nhật nhà xuất bản thành công");
   } catch (err) {
     console.error(err);
@@ -41,6 +44,7 @@ const deletePublisher = async (req, res) => {
   try {
     const { id } = req.params;
     await publisherService.deletePublisher(id);
+    emitSocketEvent(SOCKET_EVENTS.PUBLISHER_DELETED, { _id: id });
     return success(res, null, "Xóa nhà xuất bản thành công");
   } catch (err) {
     console.error(err);

@@ -132,16 +132,18 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRequestStore } from "../../stores/request";
 import { useConfirm } from "../../composables/useConfirm";
 import { useToast } from "../../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../../composables/useSocket";
 import Pagination from "../../components/Pagination.vue";
 import { Modal } from "bootstrap";
 
 const store = useRequestStore();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 const bookModal = ref(null);
 const selectedRequest = ref(null);
 let modalInstance = null;
@@ -149,6 +151,18 @@ let modalInstance = null;
 onMounted(() => {
   store.fetch();
   modalInstance = new Modal(bookModal.value);
+  
+  connect();
+  on(SOCKET_EVENTS.REQUEST_ADDED, () => store.fetch());
+  on(SOCKET_EVENTS.REQUEST_UPDATED, () => store.fetch());
+  on(SOCKET_EVENTS.REQUEST_DELETED, () => store.fetch());
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.REQUEST_ADDED);
+  off(SOCKET_EVENTS.REQUEST_UPDATED);
+  off(SOCKET_EVENTS.REQUEST_DELETED);
+  disconnect();
 });
 
 const showBooks = (request) => {

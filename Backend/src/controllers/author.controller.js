@@ -1,5 +1,6 @@
 const authorService = require("../services/author.service");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 // Lấy danh sách tác giả
 const getAuthors = async (req, res) => {
@@ -17,6 +18,7 @@ const getAuthors = async (req, res) => {
 const createAuthor = async (req, res) => {
   try {
     const newAuthor = await authorService.createAuthor(req.body);
+    emitSocketEvent(SOCKET_EVENTS.AUTHOR_ADDED, newAuthor);
     return success(res, newAuthor, "Tạo tác giả mới thành công", 201);
   } catch (err) {
     console.error(err);
@@ -29,6 +31,7 @@ const updateAuthor = async (req, res) => {
   try {
     const { id } = req.params;
     const author = await authorService.updateAuthor(id, req.body);
+    emitSocketEvent(SOCKET_EVENTS.AUTHOR_UPDATED, author);
     return success(res, author, "Cập nhật tác giả thành công");
   } catch (err) {
     console.error(err);
@@ -41,6 +44,7 @@ const deleteAuthor = async (req, res) => {
   try {
     const { id } = req.params;
     await authorService.deleteAuthor(id);
+    emitSocketEvent(SOCKET_EVENTS.AUTHOR_DELETED, { _id: id });
     return success(res, null, "Xóa tác giả thành công");
   } catch (err) {
     console.error(err);

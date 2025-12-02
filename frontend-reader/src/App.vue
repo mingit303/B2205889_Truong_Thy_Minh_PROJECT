@@ -3,7 +3,7 @@
     <!-- LOGIN/REGISTER - KHÔNG CÓ SIDEBAR -->
     <div v-if="isAuthPage" class="auth-wrapper">
       <div class="container py-5" style="max-width: 450px;">
-        <router-view />
+        <router-view :key="route.fullPath" />
       </div>
     </div>
 
@@ -11,7 +11,7 @@
     <div v-else class="d-flex">
       <ReaderSidebar />
       <main class="content-shift">
-        <router-view />
+        <router-view :key="route.fullPath" />
       </main>
     </div>
 

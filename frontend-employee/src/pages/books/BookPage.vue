@@ -231,32 +231,36 @@
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Đơn giá</label>
+                  <label class="form-label">Đơn giá *</label>
                   <input
                     type="number"
                     v-model.number="form.DonGia"
                     class="form-control"
                     min="0"
+                    required
                   />
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Số quyển</label>
+                  <label class="form-label">Số quyển *</label>
                   <input
                     type="number"
                     v-model.number="form.SoQuyen"
                     class="form-control"
                     min="0"
+                    required
                   />
                 </div>
 
                 <div class="col-md-4">
-                  <label class="form-label">Năm xuất bản</label>
+                  <label class="form-label">Năm xuất bản *</label>
                   <input
                     type="number"
                     v-model.number="form.NamXuatBan"
                     class="form-control"
-                    min="0"
+                    min="1900"
+                    max="2100"
+                    required
                   />
                 </div>
 
@@ -313,10 +317,11 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, onUnmounted } from "vue";
 import { useBookStore } from "../../stores/book";
 import { useConfirm } from "../../composables/useConfirm";
 import { useToast } from "../../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../../composables/useSocket";
 import { categoryApi } from "../../api/categoryApi";
 import { publisherApi } from "../../api/publisherApi";
 import { authorApi } from "../../api/authorApi";
@@ -326,6 +331,7 @@ import * as bootstrap from "bootstrap";
 const store = useBookStore();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 const categories = ref([]);
 const publishers = ref([]);
 const authors = ref([]);
@@ -356,7 +362,35 @@ let modalInstance = null;
 onMounted(async () => {
   await Promise.all([store.fetch(), loadCombos()]);
   modalInstance = new bootstrap.Modal(modalRef.value);
+  
+  // Connect socket and listen for book events
+  connect();
+  on(SOCKET_EVENTS.BOOK_ADDED, handleBookAdded);
+  on(SOCKET_EVENTS.BOOK_UPDATED, handleBookUpdated);
+  on(SOCKET_EVENTS.BOOK_DELETED, handleBookDeleted);
 });
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.BOOK_ADDED, handleBookAdded);
+  off(SOCKET_EVENTS.BOOK_UPDATED, handleBookUpdated);
+  off(SOCKET_EVENTS.BOOK_DELETED, handleBookDeleted);
+  disconnect();
+});
+
+const handleBookAdded = () => {
+  console.log('📦 New book added - refreshing list');
+  store.fetch();
+};
+
+const handleBookUpdated = () => {
+  console.log('✏️ Book updated - refreshing list');
+  store.fetch();
+};
+
+const handleBookDeleted = () => {
+  console.log('🗑️ Book deleted - refreshing list');
+  store.fetch();
+};
 
 const loadCombos = async () => {
   const [cRes, pRes, aRes] = await Promise.all([

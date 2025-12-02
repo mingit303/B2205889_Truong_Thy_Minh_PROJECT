@@ -1,6 +1,7 @@
 // src/controllers/borrow.controller.js
 const service = require("../services/borrow.service");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 /* ======================================================
    EMPLOYEE — LIST
@@ -29,6 +30,7 @@ exports.getBorrowRecords = async (req, res) => {
 exports.createBorrowRecord = async (req, res) => {
   try {
     const record = await service.createBorrowRecord(req.body, req.user.id);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_ADDED, record);
     return success(res, record, "Tạo phiếu mượn thành công");
   } catch (err) {
     console.error(err);
@@ -42,6 +44,7 @@ exports.createBorrowRecord = async (req, res) => {
 exports.returnBook = async (req, res) => {
   try {
     const record = await service.returnBook(req.params.id);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
     return success(res, record, "Trả sách thành công");
   } catch (err) {
     console.error(err);
@@ -55,6 +58,7 @@ exports.returnBook = async (req, res) => {
 exports.extendBorrow = async (req, res) => {
   try {
     const record = await service.extendBorrow(req.params.id);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
     return success(res, record, "Gia hạn thành công");
   } catch (err) {
     console.error(err);
@@ -68,6 +72,7 @@ exports.extendBorrow = async (req, res) => {
 exports.reportDamaged = async (req, res) => {
   try {
     const record = await service.reportDamaged(req.params.id, req.body);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
     return success(res, record, "Đã ghi nhận sách hư hỏng");
   } catch (err) {
     console.error(err);
@@ -81,6 +86,7 @@ exports.reportDamaged = async (req, res) => {
 exports.reportLost = async (req, res) => {
   try {
     const record = await service.reportLost(req.params.id, req.body);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
     return success(res, record, "Đã ghi nhận mất sách");
   } catch (err) {
     console.error(err);
@@ -94,6 +100,7 @@ exports.reportLost = async (req, res) => {
 exports.markPaid = async (req, res) => {
   try {
     const record = await service.markPaid(req.params.id);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
     return success(res, record, "Đã bồi thường");
   } catch (err) {
     console.error(err);

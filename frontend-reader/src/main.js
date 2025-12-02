@@ -52,6 +52,8 @@ import {
   faAngleLeft,
   faAngleRight,
   faUserCheck,
+  faBuilding,
+  faBarcode,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -94,6 +96,8 @@ library.add(
   faAngleLeft,
   faAngleRight,
   faUserCheck,
+  faBuilding,
+  faBarcode,
 );
 
 app.component("font-awesome-icon", FontAwesomeIcon);

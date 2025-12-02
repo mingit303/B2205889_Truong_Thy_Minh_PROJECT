@@ -8,7 +8,7 @@
     >
       <div class="toast-header" :class="getHeaderClass(toast.type)">
         <font-awesome-icon :icon="getIcon(toast.type)" class="me-2" />
-        <strong class="me-auto">{{ getTitle(toast.type) }}</strong>
+        <strong class="me-auto">{{ toast.title || getTitle(toast.type) }}</strong>
         <button
           type="button"
           class="btn-close btn-close-white"

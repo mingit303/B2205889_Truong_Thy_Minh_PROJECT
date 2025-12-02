@@ -1,5 +1,6 @@
 const readerService = require("../services/reader.service");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 exports.getReaders = async (req, res) => {
   try {
@@ -32,6 +33,7 @@ exports.getReaderById = async (req, res) => {
 exports.createReader = async (req, res) => {
   try {
     const created = await readerService.createReader(req.body);
+    emitSocketEvent(SOCKET_EVENTS.READER_ADDED, created);
     return success(res, created, "Thêm độc giả thành công", 201);
   } catch (err) {
     return error(res, err.message);
@@ -44,6 +46,7 @@ exports.updateReader = async (req, res) => {
 
     if (!updated) return error(res, "Không tìm thấy độc giả", 404);
 
+    emitSocketEvent(SOCKET_EVENTS.READER_UPDATED, updated);
     return success(res, updated, "Cập nhật độc giả thành công");
   } catch (err) {
     return error(res, err.message);
@@ -55,6 +58,7 @@ exports.toggleReaderStatus = async (req, res) => {
     const updated = await readerService.toggleReaderStatus(req.params.id);
     if (!updated) return error(res, "Không tìm thấy độc giả", 404);
 
+    emitSocketEvent(SOCKET_EVENTS.READER_UPDATED, updated);
     return success(res, updated, "Đổi trạng thái thành công");
   } catch (err) {
     return error(res, err.message);
@@ -66,6 +70,7 @@ exports.deleteReader = async (req, res) => {
     const deleted = await readerService.deleteReader(req.params.id);
     if (!deleted) return error(res, "Không tìm thấy độc giả", 404);
 
+    emitSocketEvent(SOCKET_EVENTS.READER_DELETED, { _id: req.params.id });
     return success(res, null, "Xóa độc giả thành công");
   } catch (err) {
     return error(res, err.message);

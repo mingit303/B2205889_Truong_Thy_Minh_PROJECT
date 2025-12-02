@@ -24,17 +24,31 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { useBookStore } from "../stores/book";
 import { useCartStore } from "../stores/cart";
 import { useToast } from "../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../composables/useSocket";
 
 const books = useBookStore();
 const cart = useCartStore();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 
 onMounted(() => {
   books.fetch();
+  
+  connect();
+  on(SOCKET_EVENTS.BOOK_ADDED, () => books.fetch());
+  on(SOCKET_EVENTS.BOOK_UPDATED, () => books.fetch());
+  on(SOCKET_EVENTS.BOOK_DELETED, () => books.fetch());
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.BOOK_ADDED);
+  off(SOCKET_EVENTS.BOOK_UPDATED);
+  off(SOCKET_EVENTS.BOOK_DELETED);
+  disconnect();
 });
 
 const add = async (id) => {

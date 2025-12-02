@@ -101,14 +101,16 @@ const close = () => {
 const handleSubmit = async () => {
   if (!record.value?._id) return;
 
+  loading.value = true;
   try {
-    loading.value = true;
     await store.reportLost(record.value._id, {
       LyDoXuPhat: form.LyDoXuPhat || "Mất sách",
     });
     toast.success("Đã báo mất sách thành công!");
-    close();
+    visible.value = false;
+    record.value = null;
   } catch (err) {
+    console.error("Report lost error:", err);
     toast.error(err?.response?.data?.message || "Lỗi xử lý mất sách");
   } finally {
     loading.value = false;

@@ -88,12 +88,15 @@ const isOverdue = computed(() => {
 
 const handleConfirm = async () => {
   if (!record.value?._id) return;
+  
+  loading.value = true;
   try {
-    loading.value = true;
     await store.returnBook(record.value._id);
     toast.success("Trả sách thành công!");
-    close();
+    visible.value = false;
+    record.value = null;
   } catch (err) {
+    console.error("Return book error:", err);
     toast.error(err?.response?.data?.message || "Lỗi trả sách");
   } finally {
     loading.value = false;

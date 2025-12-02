@@ -54,6 +54,7 @@
 import { reactive, ref } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
+import { useToast } from "../composables/useToast";
 
 const form = reactive({
   MaDocGia: "",
@@ -63,12 +64,14 @@ const form = reactive({
 const errorMsg = ref("");
 const auth = useAuthStore();
 const router = useRouter();
+const toast = useToast();
 
 const login = async () => {
   errorMsg.value = "";
 
   try {
     await auth.login(form);
+    toast.success(`Chào mừng ${auth.reader?.HoLot} ${auth.reader?.Ten || 'bạn'}!`, "Đăng nhập thành công");
     router.push("/");
   } catch (err) {
     errorMsg.value = err.response?.data?.message || "Sai thông tin đăng nhập!";

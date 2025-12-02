@@ -13,7 +13,7 @@
     <div v-if="cart.items.length === 0" class="empty-cart-wrapper">
       <div class="empty-cart-icon">
         <font-awesome-icon icon="cart-shopping" class="cart-icon" />
-        <font-awesome-icon icon="xmark" class="x-icon" />
+        <!-- <font-awesome-icon icon="xmark" class="x-icon" /> -->
       </div>
       
       <h4 class="mt-4 mb-2 fw-bold">Giỏ mượn trống</h4>
@@ -44,15 +44,15 @@
           <h6 class="mb-1 fw-bold">{{ book.TenSach }}</h6>
 
           <div class="text-muted small">
-            ✍️ <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b>
+            Tác giả: <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b>
           </div>
 
           <div class="text-muted small">
-            🏷️ <b>{{ book.MaTheLoai?.TenTheLoai }}</b>
+            Thể loại: <b>{{ book.MaTheLoai?.TenTheLoai }}</b>
           </div>
 
           <div class="text-muted small">
-            🏢 <b>{{ book.MaNXB?.TenNXB }}</b>
+            Nhà xuất bản: <b>{{ book.MaNXB?.TenNXB }}</b>
           </div>
 
           <span

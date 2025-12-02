@@ -142,16 +142,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useBookStore } from "../stores/book";
 import { useCartStore } from "../stores/cart";
 import { useToast } from "../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../composables/useSocket";
 import http from "../api/axios";
 import Pagination from "../components/Pagination.vue";
 
 const bookStore = useBookStore();
 const cartStore = useCartStore();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 
 /* DATA */
 const books = computed(() => bookStore.items);
@@ -198,6 +200,27 @@ onMounted(() => {
   fetchFilterData();
   fetch();
   cartStore.load();
+  
+  connect();
+  on(SOCKET_EVENTS.BOOK_ADDED, () => {
+    console.log('📦 Book added - refreshing');
+    fetch();
+  });
+  on(SOCKET_EVENTS.BOOK_UPDATED, () => {
+    console.log('✏️ Book updated - refreshing');
+    fetch();
+  });
+  on(SOCKET_EVENTS.BOOK_DELETED, () => {
+    console.log('🗑️ Book deleted - refreshing');
+    fetch();
+  });
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.BOOK_ADDED);
+  off(SOCKET_EVENTS.BOOK_UPDATED);
+  off(SOCKET_EVENTS.BOOK_DELETED);
+  disconnect();
 });
 
 const addToCart = async (book) => {

@@ -5,13 +5,14 @@ const toastList = ref([]);
 let idCounter = 0;
 
 export function useToast() {
-  const show = (message, type = 'info', duration = 3000) => {
+  const show = (message, type = 'info', title = null, duration = 3000) => {
     const id = ++idCounter;
     
     const toast = {
       id,
       message,
       type, // 'success', 'error', 'warning', 'info'
+      title, // custom title
       visible: true
     };
 
@@ -32,10 +33,10 @@ export function useToast() {
     }
   };
 
-  const success = (message, duration) => show(message, 'success', duration);
-  const error = (message, duration) => show(message, 'error', duration);
-  const warning = (message, duration) => show(message, 'warning', duration);
-  const info = (message, duration) => show(message, 'info', duration);
+  const success = (message, title = null, duration = 3000) => show(message, 'success', title, duration);
+  const error = (message, title = null, duration = 3000) => show(message, 'error', title, duration);
+  const warning = (message, title = null, duration = 3000) => show(message, 'warning', title, duration);
+  const info = (message, title = null, duration = 3000) => show(message, 'info', title, duration);
 
   return {
     toastList,

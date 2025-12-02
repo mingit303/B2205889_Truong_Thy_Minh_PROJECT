@@ -5,25 +5,55 @@
       Yêu cầu mượn sách
     </h3>
 
+    <!-- FILTER -->
+    <div class="card p-3 mb-3">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <select v-model="filterStatus" class="form-select" @change="handleFilterChange">
+            <option value="">Tất cả trạng thái</option>
+            <option value="CHO_DUYET">Đang chờ duyệt</option>
+            <option value="DA_DUYET">Đã duyệt</option>
+            <option value="TU_CHOI">Bị từ chối</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <!-- EMPTY STATE -->
-    <div v-if="req.items.length === 0" class="alert alert-info">
-      Bạn chưa gửi yêu cầu mượn nào.
+    <div v-if="req.items.length === 0" class="empty-wrapper">
+      <div class="empty-icon">
+        <font-awesome-icon icon="envelope-open-text" class="main-icon" />
+      </div>
+      
+      <h4 class="mt-4 mb-2 fw-bold">Chưa có yêu cầu mượn sách</h4>
+      <p class="text-muted mb-4">Bạn chưa gửi yêu cầu mượn nào. Hãy thêm sách vào giỏ và gửi yêu cầu!</p>
+      
+      <router-link to="/" class="btn btn-primary px-4">
+        <font-awesome-icon icon="book" class="me-2" />
+        Khám phá sách ngay
+      </router-link>
+    </div>
+
+    <!-- NO RESULTS FOR FILTER -->
+    <div v-else-if="filteredItems.length === 0" class="alert alert-info text-center">
+      <font-awesome-icon icon="circle-info" class="me-2" />
+      Không có yêu cầu nào với trạng thái "{{ mapStatus(filterStatus) }}"
     </div>
 
     <!-- REQUEST LIST -->
     <div class="accordion" id="requestAccordion" v-else>
       <div
         class="accordion-item"
-        v-for="(r, index) in req.items"
+        v-for="(r, index) in paginatedItems"
         :key="r._id"
       >
         <!-- HEADER -->
         <h2 class="accordion-header" :id="'heading-' + index">
           <button
-            class="accordion-button collapsed"
+            class="accordion-button"
+            :class="{ collapsed: openAccordion !== index }"
             type="button"
-            data-bs-toggle="collapse"
-            :data-bs-target="'#collapse-' + index"
+            @click="toggleAccordion(index)"
           >
             <div class="d-flex flex-column w-100">
               <div class="d-flex justify-content-between">
@@ -48,7 +78,7 @@
         <div
           :id="'collapse-' + index"
           class="accordion-collapse collapse"
-          data-bs-parent="#requestAccordion"
+          :class="{ show: openAccordion === index }"
         >
           <div class="accordion-body">
             <h6 class="fw-bold mb-2">📘 Danh sách sách đã yêu cầu:</h6>
@@ -105,14 +135,79 @@
         </div>
       </div>
     </div>
+
+    <!-- PAGINATION -->
+    <div class="mt-4" v-if="filteredItems.length > limit">
+      <Pagination
+        :page="page"
+        :limit="limit"
+        :total="filteredItems.length"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRequestStore } from "../stores/request";
+import { useSocket, SOCKET_EVENTS } from "../composables/useSocket";
+import Pagination from "../components/Pagination.vue";
 
 const req = useRequestStore();
+const { connect, disconnect, on, off } = useSocket();
+
+const page = ref(1);
+const limit = ref(10);
+const filterStatus = ref("");
+const openAccordion = ref(null);
+
+const filteredItems = computed(() => {
+  if (!filterStatus.value) {
+    return req.items;
+  }
+  return req.items.filter(item => item.TrangThai === filterStatus.value);
+});
+
+const paginatedItems = computed(() => {
+  const start = (page.value - 1) * limit.value;
+  const end = start + limit.value;
+  return filteredItems.value.slice(start, end);
+});
+
+const handleFilterChange = () => {
+  page.value = 1;
+  openAccordion.value = null;
+};
+
+const toggleAccordion = (index) => {
+  if (openAccordion.value === index) {
+    openAccordion.value = null;
+  } else {
+    openAccordion.value = index;
+  }
+};
+
+const handlePageChange = (p) => {
+  page.value = p;
+  openAccordion.value = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+onMounted(() => {
+  req.fetchMine();
+  
+  connect();
+  on(SOCKET_EVENTS.REQUEST_UPDATED, () => {
+    console.log('🔄 Request updated - refreshing');
+    req.fetchMine();
+  });
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.REQUEST_UPDATED);
+  disconnect();
+});
 
 /* STATUS LABEL */
 const mapStatus = (s) => {
@@ -146,8 +241,6 @@ const statusColor = (s) => {
 const formatDate = (date) => {
   return new Date(date).toLocaleString("vi-VN");
 };
-
-onMounted(() => req.fetchMine());
 </script>
 
 <style scoped>
@@ -165,5 +258,21 @@ onMounted(() => req.fetchMine());
 
 .list-group-item {
   padding: 12px 16px;
+}
+
+.empty-wrapper {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.main-icon {
+  font-size: 120px;
+  color: #e0e0e0;
 }
 </style>

@@ -122,16 +122,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { useAuthorStore } from "../../stores/author";
 import { useConfirm } from "../../composables/useConfirm";
 import { useToast } from "../../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../../composables/useSocket";
 import Pagination from "../../components/Pagination.vue";
 import * as bootstrap from "bootstrap";
 
 const store = useAuthorStore();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 const modalRef = ref(null);
 let modal = null;
 
@@ -145,6 +147,18 @@ const editing = ref(false);
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  connect();
+  on(SOCKET_EVENTS.AUTHOR_ADDED, () => store.fetch());
+  on(SOCKET_EVENTS.AUTHOR_UPDATED, () => store.fetch());
+  on(SOCKET_EVENTS.AUTHOR_DELETED, () => store.fetch());
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.AUTHOR_ADDED);
+  off(SOCKET_EVENTS.AUTHOR_UPDATED);
+  off(SOCKET_EVENTS.AUTHOR_DELETED);
+  disconnect();
 });
 
 const handleSearch = () => {

@@ -249,16 +249,18 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, onUnmounted } from "vue";
 import * as bootstrap from "bootstrap";
 import { useReaderStore } from "../../stores/reader";
 import { useConfirm } from "../../composables/useConfirm";
 import { useToast } from "../../composables/useToast";
+import { useSocket, SOCKET_EVENTS } from "../../composables/useSocket";
 import Pagination from "../../components/Pagination.vue";
 
 const store = useReaderStore();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { connect, disconnect, on, off } = useSocket();
 const modalRef = ref(null);
 let modal = null;
 
@@ -279,6 +281,18 @@ const form = reactive({
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  connect();
+  on(SOCKET_EVENTS.READER_ADDED, () => store.fetch());
+  on(SOCKET_EVENTS.READER_UPDATED, () => store.fetch());
+  on(SOCKET_EVENTS.READER_DELETED, () => store.fetch());
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.READER_ADDED);
+  off(SOCKET_EVENTS.READER_UPDATED);
+  off(SOCKET_EVENTS.READER_DELETED);
+  disconnect();
 });
 
 const applyFilters = () => {

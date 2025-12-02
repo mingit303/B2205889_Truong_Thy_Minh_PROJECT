@@ -228,52 +228,130 @@
           <span class="fw-bold text-danger">{{ formatCurrency(store.totalFine) }}</span>
         </div>
 
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 60px" class="text-center">#</th>
-              <th>Mã độc giả</th>
-              <th>Họ tên</th>
-              <th>Loại</th>
-              <th>Tiền phạt</th>
-              <th>Ngày xử lý</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="!store.fineRecords.length">
-              <td colspan="6" class="text-center py-3 text-muted small">Không có dữ liệu</td>
-            </tr>
+        <div style="max-height: 500px; overflow-y: auto;">
+          <table class="table table-hover mb-0">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 60px" class="text-center">#</th>
+                <th>Mã độc giả</th>
+                <th>Họ tên</th>
+                <th>Loại</th>
+                <th>Tiền phạt</th>
+                <th>Ngày xử lý</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="!store.fineRecords.length">
+                <td colspan="6" class="text-center py-3 text-muted small">Không có dữ liệu</td>
+              </tr>
 
-            <tr
-              v-for="(row, idx) in store.fineRecords"
-              :key="idx"
-            >
-              <td class="text-center">{{ idx + 1 }}</td>
-              <td>{{ row.MaDocGia }}</td>
-              <td>{{ row.HoTen }}</td>
-              <td>
-                <span class="badge" :class="statusClass(row.Loai)">
-                  {{ row.Loai }}
-                </span>
-              </td>
-              <td class="text-danger fw-bold">{{ formatCurrency(row.TienPhat) }}</td>
-              <td>{{ formatDate(row.NgayTra) }}</td>
-            </tr>
-          </tbody>
-        </table>
+              <tr
+                v-for="(row, idx) in store.fineRecords"
+                :key="idx"
+              >
+                <td class="text-center">{{ idx + 1 }}</td>
+                <td>{{ row.MaDocGia }}</td>
+                <td>{{ row.HoTen }}</td>
+                <td>
+                  <span class="badge" :class="statusClass(row.Loai)">
+                    {{ row.Loai }}
+                  </span>
+                </td>
+                <td>
+                  <button 
+                    v-if="row.TienPhat > 0"
+                    class="btn btn-sm btn-link text-danger p-0 text-decoration-none fw-bold"
+                    @click="showFineDetail(row)"
+                    type="button"
+                  >
+                    {{ formatCurrency(row.TienPhat) }}
+                    <font-awesome-icon icon="circle-info" class="ms-1" style="font-size: 0.85rem;" />
+                  </button>
+                  <span v-else class="text-muted">0 đ</span>
+                </td>
+                <td>{{ formatDate(row.NgayTra) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
+    </div>
+
+    <!-- FINE DETAIL MODAL -->
+    <div class="modal fade" id="fineModal" tabindex="-1" ref="fineModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon icon="circle-exclamation" class="me-2 text-danger" />
+              Chi tiết tiền phạt
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedFine">
+            <div class="mb-3">
+              <strong>Độc giả:</strong> {{ selectedFine.MaDocGia }} - {{ selectedFine.HoTen }}
+            </div>
+            <div class="mb-3">
+              <strong>Sách:</strong> {{ selectedFine.MaSach }} - {{ selectedFine.TenSach }}
+            </div>
+            
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Loại phạt</th>
+                  <th class="text-end">Số tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="getFineBreakdown(selectedFine).lateFine > 0">
+                  <td>
+                    Phạt trễ hạn<br>
+                    <small class="text-muted">{{ getFineBreakdown(selectedFine).daysLate }} ngày × 5,000 đ</small>
+                  </td>
+                  <td class="text-end">{{ formatCurrency(getFineBreakdown(selectedFine).lateFine) }}</td>
+                </tr>
+                <tr v-if="getFineBreakdown(selectedFine).damageFine > 0">
+                  <td>
+                    Phạt hư hỏng/mất<br>
+                    <small class="text-muted" v-if="selectedFine.MucDoHuHong">{{ selectedFine.MucDoHuHong }}</small>
+                  </td>
+                  <td class="text-end">{{ formatCurrency(getFineBreakdown(selectedFine).damageFine) }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="table-danger fw-bold">
+                  <td>TỔNG CỘNG</td>
+                  <td class="text-end">{{ formatCurrency(selectedFine.TienPhat) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div v-if="selectedFine.LyDoXuPhat" class="alert alert-warning small mb-0">
+              <strong>Lý do:</strong> {{ selectedFine.LyDoXuPhat }}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useStatisticsStore } from "../../stores/statistics";
+import { Modal } from "bootstrap";
 
 const store = useStatisticsStore();
 const loading = store.loading;
+const fineModal = ref(null);
+const selectedFine = ref(null);
+let fineModalInstance = null;
 
 /* ========= OVERVIEW CARDS ========= */
 const cards = computed(() => [
@@ -399,5 +477,32 @@ onMounted(() => {
   store.loadBorrowReturn();
   store.loadStatusDistribution();
   store.loadFines();
+  fineModalInstance = new Modal(fineModal.value);
 });
+
+const showFineDetail = (fine) => {
+  selectedFine.value = fine;
+  fineModalInstance.show();
+};
+
+const getFineBreakdown = (record) => {
+  let daysLate = 0;
+  let lateFine = 0;
+  let damageFine = 0;
+  
+  if (record.NgayTra && record.HanTra) {
+    const hanTra = new Date(record.HanTra);
+    const ngayTra = new Date(record.NgayTra);
+    if (ngayTra > hanTra) {
+      daysLate = Math.ceil((ngayTra - hanTra) / (1000 * 60 * 60 * 24));
+      lateFine = daysLate * 5000;
+    }
+  }
+  
+  if (["Hư hỏng", "Mất sách", "Đã bồi thường"].includes(record.Loai)) {
+    damageFine = (record.TienPhat || 0) - lateFine;
+  }
+  
+  return { daysLate, lateFine, damageFine };
+};
 </script>

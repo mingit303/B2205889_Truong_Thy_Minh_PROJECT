@@ -20,8 +20,24 @@
     </div>
 
     <!-- EMPTY -->
-    <div v-if="store.items.length === 0" class="alert alert-info">
-      Không có dữ liệu.
+    <div v-if="store.total === 0 && !store.status" class="empty-wrapper">
+      <div class="empty-icon">
+        <font-awesome-icon icon="clock-rotate-left" class="main-icon" />
+      </div>
+      
+      <h4 class="mt-4 mb-2 fw-bold">Chưa có lịch sử mượn sách</h4>
+      <p class="text-muted mb-4">Bạn chưa có bất kỳ giao dịch mượn sách nào.</p>
+      
+      <router-link to="/" class="btn btn-primary px-4">
+        <font-awesome-icon icon="book" class="me-2" />
+        Khám phá sách ngay
+      </router-link>
+    </div>
+
+    <!-- NO RESULTS FOR FILTER -->
+    <div v-else-if="store.items.length === 0 && store.status" class="alert alert-info text-center">
+      <font-awesome-icon icon="circle-info" class="me-2" />
+      Không có giao dịch nào với trạng thái "{{ store.status }}"
     </div>
 
     <!-- LIST -->
@@ -41,44 +57,73 @@
 
           <!-- INFO -->
           <div class="flex-grow-1">
-            <h6 class="fw-bold mb-1">{{ h.Book?.TenSach || h.MaSach }}</h6>
+            <h6 class="fw-bold mb-2">{{ h.Book?.TenSach || h.MaSach }}</h6>
 
-            <div class="text-muted small">
-              Tác giả: {{ h.Book?.MaTacGia?.TenTacGia || "Không rõ" }}
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <div class="text-muted small">
+                  <font-awesome-icon icon="user" class="me-1" />
+                  Tác giả: {{ h.Book?.MaTacGia?.TenTacGia || "Không rõ" }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small">
+                  <font-awesome-icon icon="building" class="me-1" />
+                  NXB: {{ h.Book?.MaNXB?.TenNXB || "Không rõ" }}
+                </div>
+              </div>
             </div>
 
-            <div class="text-muted small">
-              NXB: {{ h.Book?.MaNXB?.TenNXB || "Không rõ" }}
-            </div>
-
-            <div class="text-muted small mb-2">
+            <div class="text-muted small mb-3">
+              <font-awesome-icon icon="barcode" class="me-1" />
               Mã sách: {{ h.MaSach }}
             </div>
 
-            <div class="small">
-              <span class="fw-semibold">Ngày mượn:</span>
-              {{ format(h.NgayMuon) }}
-            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-md-4">
+                <div class="info-box">
+                  <div class="info-label">Ngày mượn</div>
+                  <div class="info-value">{{ format(h.NgayMuon) }}</div>
+                </div>
+              </div>
 
-            <div class="small">
-              <span class="fw-semibold">Hạn trả:</span>
-              {{ format(h.HanTra) }}
-            </div>
+              <div class="col-md-4">
+                <div class="info-box">
+                  <div class="info-label">Hạn trả</div>
+                  <div class="info-value">{{ format(h.HanTra) }}</div>
+                </div>
+              </div>
 
-            <div class="small">
-              <span class="fw-semibold">Ngày trả:</span>
-              {{ h.NgayTra ? format(h.NgayTra) : "Chưa trả" }}
+              <div class="col-md-4">
+                <div class="info-box">
+                  <div class="info-label">Ngày trả</div>
+                  <div class="info-value">{{ h.NgayTra ? format(h.NgayTra) : "Chưa trả" }}</div>
+                </div>
+              </div>
             </div>
 
             <!-- TIỀN PHẠT -->
-            <div v-if="h.TienPhat && h.TienPhat > 0" class="small">
-              <span class="fw-semibold text-danger">Tiền phạt:</span>
-              <span class="text-danger fw-bold">{{ formatCurrency(h.TienPhat) }}</span>
-              
-              <!-- CHI TIẾT NẾu CÓ 2 KHOẢN -->
-              <div v-if="hasMultipleFines(h)" class="text-muted" style="font-size: 11px; margin-left: 10px;">
-                • Trễ hạn: {{ formatCurrency(getLateFine(h)) }}<br>
-                • {{ getDamageFineLabel(h) }}: {{ formatCurrency(getDamageFine(h)) }}
+            <div v-if="h.TienPhat && h.TienPhat > 0" class="mt-2">
+              <div class="alert alert-danger py-2 mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold">
+                    <font-awesome-icon icon="exclamation-circle" class="me-1" />
+                    Tiền phạt:
+                  </span>
+                  <span class="fw-bold">{{ formatCurrency(h.TienPhat) }}</span>
+                </div>
+                
+                <!-- CHI TIẾT NẾU CÓ 2 KHOẢN -->
+                <div v-if="hasMultipleFines(h)" class="mt-2 small">
+                  <div class="d-flex justify-content-between">
+                    <span>• Trễ hạn:</span>
+                    <span>{{ formatCurrency(getLateFine(h)) }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <span>• {{ getDamageFineLabel(h) }}:</span>
+                    <span>{{ formatCurrency(getDamageFine(h)) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -92,7 +137,7 @@
     </div>
 
     <!-- PAGINATION -->
-    <div class="mt-4">
+    <div class="mt-4" v-if="store.total > store.limit">
       <Pagination
         :page="store.page"
         :limit="store.limit"
@@ -105,13 +150,28 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { useHistoryStore } from "../stores/history";
+import { useSocket, SOCKET_EVENTS } from "../composables/useSocket";
 import Pagination from "../components/Pagination.vue";
 
 const store = useHistoryStore();
+const { connect, disconnect, on, off } = useSocket();
 
-onMounted(() => store.fetch());
+onMounted(() => {
+  store.fetch();
+  
+  connect();
+  on(SOCKET_EVENTS.BORROW_UPDATED, () => {
+    console.log('🔄 Borrow record updated - refreshing');
+    store.fetch();
+  });
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.BORROW_UPDATED);
+  disconnect();
+});
 
 const reload = () => {
   store.page = 1;
@@ -183,5 +243,40 @@ const statusColor = (s) => {
   width: 90px;
   height: 120px;
   object-fit: cover;
+}
+
+.info-box {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #0d6efd;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #6c757d;
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.empty-wrapper {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.main-icon {
+  font-size: 120px;
+  color: #e0e0e0;
 }
 </style>

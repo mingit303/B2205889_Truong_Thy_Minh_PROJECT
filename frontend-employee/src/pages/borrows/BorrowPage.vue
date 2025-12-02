@@ -279,10 +279,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useBorrowStore } from "../../stores/borrow";
 import { useToast } from "../../composables/useToast";
 import { useConfirm } from "../../composables/useConfirm";
+import { useSocket, SOCKET_EVENTS } from "../../composables/useSocket";
 import { Modal } from "bootstrap";
 
 import Pagination from "../../components/Pagination.vue";
@@ -294,6 +295,7 @@ import LostModal from "../../components/borrow/LostModal.vue";
 const store = useBorrowStore();
 const toast = useToast();
 const { confirm } = useConfirm();
+const { connect, disconnect, on, off } = useSocket();
 const fineModal = ref(null);
 const selectedBorrow = ref(null);
 let fineModalInstance = null;
@@ -301,6 +303,18 @@ let fineModalInstance = null;
 onMounted(() => {
   store.fetch();
   fineModalInstance = new Modal(fineModal.value);
+  
+  connect();
+  on(SOCKET_EVENTS.BORROW_ADDED, () => store.fetch());
+  on(SOCKET_EVENTS.BORROW_UPDATED, () => store.fetch());
+  on(SOCKET_EVENTS.BORROW_DELETED, () => store.fetch());
+});
+
+onUnmounted(() => {
+  off(SOCKET_EVENTS.BORROW_ADDED);
+  off(SOCKET_EVENTS.BORROW_UPDATED);
+  off(SOCKET_EVENTS.BORROW_DELETED);
+  disconnect();
 });
 
 const showFineDetail = (borrow) => {

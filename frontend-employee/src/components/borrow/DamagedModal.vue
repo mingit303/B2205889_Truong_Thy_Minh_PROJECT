@@ -132,15 +132,17 @@ const handleSubmit = async () => {
     return;
   }
 
+  loading.value = true;
   try {
-    loading.value = true;
     await store.reportDamaged(record.value._id, {
       MucDoHuHong: form.MucDoHuHong,
       LyDoXuPhat: form.LyDoXuPhat || "",
     });
     toast.success("Đã báo sách hư hỏng thành công!");
-    close();
+    visible.value = false;
+    record.value = null;
   } catch (err) {
+    console.error("Report damaged error:", err);
     toast.error(err?.response?.data?.message || "Lỗi xử lý sách hư hỏng");
   } finally {
     loading.value = false;

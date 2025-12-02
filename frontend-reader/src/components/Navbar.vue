@@ -80,10 +80,12 @@ import { computed, onMounted } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cart";
+import { useToast } from "../composables/useToast";
 
 const auth = useAuthStore();
 const router = useRouter();
 const cartStore = useCartStore();
+const toast = useToast();
 
 onMounted(() => cartStore.load());
 console.log("AUTH READER NAVBAR:", auth.reader);
@@ -94,6 +96,7 @@ const fullName = computed(() =>
 
 const logout = () => {
   auth.logout();
+  toast.success("Đã đăng xuất", "Hẹn gặp lại!");
   router.push("/login");
 };
 </script>
