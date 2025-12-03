@@ -12,7 +12,7 @@ class AuthorService {
     const authors = await Author.find(query)
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ TenTacGia: 1 });
+      .sort({ MaTacGia: 1 });
 
     const total = await Author.countDocuments(query);
 

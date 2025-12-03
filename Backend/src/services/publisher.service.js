@@ -15,7 +15,7 @@ class PublisherService {
     const publishers = await Publisher.find(query)
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ TenNXB: 1 });
+      .sort({ MaNXB: 1 });
 
     const total = await Publisher.countDocuments(query);
 

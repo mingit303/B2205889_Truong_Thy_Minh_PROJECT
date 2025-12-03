@@ -1,14 +1,21 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="building-columns" class="me-2" />
-        Nhà xuất bản
-      </h3>
-
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Thêm NXB
-      </button>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="building" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Nhà xuất bản</h3>
+            <p class="header-subtitle mb-0">Quản lý thông tin NXB</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Thêm NXB
+        </button>
+      </div>
     </div>
 
     <!-- SEARCH -->
@@ -97,7 +104,7 @@
                   type="text"
                   class="form-control" 
                   :disabled="editing" 
-                  required 
+                  
                   minlength="2"
                   maxlength="20"
                 />
@@ -109,7 +116,7 @@
                   v-model="form.TenNXB" 
                   type="text"
                   class="form-control" 
-                  required 
+                  
                   minlength="2"
                   maxlength="100"
                 />
@@ -160,10 +167,14 @@ const form = reactive({
 });
 
 const editing = ref(false);
+const originalData = ref(null);
 
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  // Reset form khi đóng modal
+  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
   
   connect();
   on(SOCKET_EVENTS.PUBLISHER_ADDED, () => store.fetch());
@@ -203,10 +214,51 @@ const openEdit = (p) => {
   form.MaNXB = p.MaNXB;
   form.TenNXB = p.TenNXB;
   form.DiaChi = p.DiaChi || "";
+  originalData.value = {
+    TenNXB: p.TenNXB,
+    DiaChi: p.DiaChi || ""
+  };
   modal.show();
 };
 
+const resetForm = () => {
+  form.MaNXB = "";
+  form.TenNXB = "";
+  form.DiaChi = "";
+  editing.value = false;
+  originalData.value = null;
+};
+
 const submitForm = async () => {
+  if (editing.value && originalData.value) {
+    const hasChanges = 
+      form.TenNXB !== originalData.value.TenNXB ||
+      form.DiaChi !== originalData.value.DiaChi;
+    if (!hasChanges) {
+      modal.hide();
+      return;
+    }
+  }
+
+  // Kiểm tra trùng tên NXB khi thêm mới
+  if (!editing.value) {
+    const existsCode = store.items.some(p => 
+      p.MaNXB.toLowerCase().trim() === form.MaNXB.toLowerCase().trim()
+    );
+    if (existsCode) {
+      toast.error('Mã nhà xuất bản đã tồn tại!');
+      return;
+    }
+    
+    const existsName = store.items.some(p => 
+      p.TenNXB.toLowerCase().trim() === form.TenNXB.toLowerCase().trim()
+    );
+    if (existsName) {
+      toast.error('Tên nhà xuất bản đã tồn tại!');
+      return;
+    }
+  }
+
   try {
     if (editing.value) {
       await store.update(form.MaNXB, form);
@@ -233,3 +285,40 @@ const remove = async (p) => {
   }
 };
 </script>
+
+<style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+</style>

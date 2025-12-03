@@ -17,7 +17,7 @@ const BorrowRecordSchema = new mongoose.Schema(
 
     TrangThai: {
       type: String,
-      enum: ["Đã mượn", "Đã trả", "Trễ hạn", "Hư hỏng", "Mất sách", "Đã bồi thường"],
+      enum: ["Đã mượn", "Đã trả", "Trễ hạn", "Hư hỏng", "Mất sách"],
       default: "Đã mượn",
     },
 
@@ -26,6 +26,7 @@ const BorrowRecordSchema = new mongoose.Schema(
     // TIỀN PHẠT TỔNG
     TienPhat: { type: Number, default: 0 },
     LyDoXuPhat: { type: String },
+    DaThanhToanPhat: { type: Boolean, default: false }, // Đã thanh toán tiền phạt
 
     MucDoHuHong: { type: String }, // Nhẹ / Nặng / Mất
   },

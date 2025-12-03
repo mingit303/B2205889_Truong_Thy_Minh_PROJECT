@@ -1,9 +1,17 @@
 <template>
-  <div class="container-fluid py-3">
-    <h3 class="mb-3">
-      <font-awesome-icon icon="envelope-open-text" class="me-2" />
-      Yêu cầu mượn sách
-    </h3>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center">
+        <div class="header-icon-wrapper me-3">
+          <font-awesome-icon icon="envelope-open-text" class="header-icon" />
+        </div>
+        <div>
+          <h3 class="header-title mb-1">Yêu cầu mượn sách</h3>
+          <p class="header-subtitle mb-0">Duyệt và quản lý yêu cầu từ độc giả</p>
+        </div>
+      </div>
+    </div>
 
     <!-- FILTER -->
     <div class="card mb-3 p-3">
@@ -153,12 +161,17 @@ onMounted(() => {
   modalInstance = new Modal(bookModal.value);
   
   connect();
+  on(SOCKET_EVENTS.REQUEST_CREATED, () => {
+    console.log('📨 New request created - refreshing');
+    store.fetch();
+  });
   on(SOCKET_EVENTS.REQUEST_ADDED, () => store.fetch());
   on(SOCKET_EVENTS.REQUEST_UPDATED, () => store.fetch());
   on(SOCKET_EVENTS.REQUEST_DELETED, () => store.fetch());
 });
 
 onUnmounted(() => {
+  off(SOCKET_EVENTS.REQUEST_CREATED);
   off(SOCKET_EVENTS.REQUEST_ADDED);
   off(SOCKET_EVENTS.REQUEST_UPDATED);
   off(SOCKET_EVENTS.REQUEST_DELETED);
@@ -235,6 +248,41 @@ const formatDate = (d) =>
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
 .table td,
 .table th {
   vertical-align: middle;

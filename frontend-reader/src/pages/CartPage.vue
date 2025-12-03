@@ -1,12 +1,17 @@
 <template>
   <div class="container py-4">
 
-    <!-- TITLE -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="fw-bold">
-        <font-awesome-icon icon="cart-shopping" class="me-2" />
-        Giỏ mượn sách
-      </h3>
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center">
+        <div class="header-icon-wrapper me-3">
+          <font-awesome-icon icon="cart-shopping" class="header-icon" />
+        </div>
+        <div>
+          <h3 class="header-title mb-1">Giỏ mượn sách</h3>
+          <p class="header-subtitle mb-0">Quản lý danh sách sách bạn muốn mượn</p>
+        </div>
+      </div>
     </div>
 
     <!-- GIỎ TRỐNG -->
@@ -25,8 +30,22 @@
       </router-link>
     </div>
 
+    <!-- THÔNG TIN TỔNG QUAN -->
+    <div class="cart-summary mb-3" v-if="cart.items.length > 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-muted">Tổng số sách trong giỏ:</span>
+          <strong class="ms-2 text-primary">{{ cart.items.length }} cuốn</strong>
+        </div>
+        <div>
+          <span class="text-muted">Sách có sẵn:</span>
+          <strong class="ms-2 text-success">{{ cart.items.filter(b => b.SoQuyen > 0).length }} cuốn</strong>
+        </div>
+      </div>
+    </div>
+
     <!-- DANH SÁCH SÁCH -->
-    <div class="list-group mb-4" v-else>
+    <div class="list-group mb-4" v-if="cart.items.length > 0">
       <div
         v-for="book in cart.items"
         :key="book.MaSach"
@@ -41,32 +60,60 @@
 
         <!-- INFO -->
         <div class="flex-grow-1">
-          <h6 class="mb-1 fw-bold">{{ book.TenSach }}</h6>
+          <h6 class="mb-2 fw-bold">{{ book.TenSach }}</h6>
 
-          <div class="text-muted small">
-            Tác giả: <b>{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</b>
+          <div class="row g-2 mb-2">
+            <div class="col-md-6">
+              <div class="info-item">
+                <font-awesome-icon icon="pen-nib" class="me-2" />
+                <span class="text-muted small">Tác giả:</span>
+                <strong class="ms-1 small">{{ book.MaTacGia?.TenTacGia || "Không rõ" }}</strong>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="info-item">
+                <font-awesome-icon icon="book-open" class="me-2" />
+                <span class="text-muted small">Thể loại:</span>
+                <strong class="ms-1 small">{{ book.MaTheLoai?.TenTheLoai }}</strong>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="info-item">
+                <font-awesome-icon icon="building" class="me-2" />
+                <span class="text-muted small">Nhà xuất bản:</span>
+                <strong class="ms-1 small">{{ book.MaNXB?.TenNXB }}</strong>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="info-item">
+                <font-awesome-icon icon="calendar" class="me-2" />
+                <span class="text-muted small">Năm xuất bản:</span>
+                <strong class="ms-1 small">{{ book.NamXuatBan || "N/A" }}</strong>
+              </div>
+            </div>
           </div>
 
-          <div class="text-muted small">
-            Thể loại: <b>{{ book.MaTheLoai?.TenTheLoai }}</b>
+          <div class="d-flex gap-2 align-items-center">
+            <span
+              class="badge"
+              :class="book.SoQuyen > 0 ? 'bg-success' : 'bg-secondary'"
+            >
+              {{ book.SoQuyen > 0 ? "Còn sách" : "Hết sách" }}
+            </span>
+            <span class="text-muted small" v-if="book.SoQuyen > 0">
+              (Còn <strong>{{ book.SoQuyen }}</strong> quyển)
+            </span>
           </div>
-
-          <div class="text-muted small">
-            Nhà xuất bản: <b>{{ book.MaNXB?.TenNXB }}</b>
-          </div>
-
-          <span
-            class="badge mt-2"
-            :class="book.SoQuyen > 0 ? 'bg-success' : 'bg-secondary'"
-          >
-            {{ book.SoQuyen > 0 ? "Còn sách" : "Hết sách" }}
-          </span>
         </div>
 
         <!-- REMOVE BUTTON -->
         <button
           class="btn btn-sm btn-outline-danger"
           @click="remove(book.MaSach)"
+          title="Xóa khỏi giỏ"
         >
           <font-awesome-icon icon="trash" />
         </button>
@@ -126,6 +173,12 @@ const clear = async () => {
 const sendRequest = async () => {
   if (cart.items.length === 0) return;
 
+  // Kiểm tra giới hạn 5 cuốn
+  if (cart.items.length > 5) {
+    toast.error('Bạn chỉ được mượn tối đa 5 cuốn sách cùng lúc!');
+    return;
+  }
+
   const ids = cart.items.map((b) => b.MaSach);
 
   try {
@@ -139,6 +192,41 @@ const sendRequest = async () => {
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
 /* EMPTY CART STATE */
 .empty-cart-wrapper {
   display: flex;
@@ -180,24 +268,41 @@ const sendRequest = async () => {
   border-radius: 10px;
   border: 1px solid #ddd;
   transition: 0.2s;
+  padding: 1.25rem;
 }
 .cart-item:hover {
   background: #f8f9fa;
+  border-color: #1976d2;
 }
 
 .book-img {
-  width: 70px;
-  height: 90px;
+  width: 90px;
+  height: 120px;
   object-fit: cover;
   border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+}
+
+.cart-summary {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8f5e9 100%);
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  border-left: 4px solid #1976d2;
 }
 
 .btn-primary {
-  background: #1e88e5;
-  border-color: #1e88e5;
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  border: none;
+  box-shadow: 0 4px 15px 0 rgba(25, 118, 210, 0.4);
 }
 .btn-primary:hover {
-  background: #1565c0;
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+  box-shadow: 0 6px 20px 0 rgba(25, 118, 210, 0.6);
 }
 
 .btn-outline-secondary:hover {

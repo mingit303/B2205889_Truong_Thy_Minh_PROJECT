@@ -54,6 +54,10 @@ import {
   faUserCheck,
   faBuilding,
   faBarcode,
+  faRotateLeft,
+  faPenNib,
+  faPen,
+  faCalendar,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -98,6 +102,10 @@ library.add(
   faUserCheck,
   faBuilding,
   faBarcode,
+  faRotateLeft,
+  faPenNib,
+  faPen,
+  faCalendar,
 );
 
 app.component("font-awesome-icon", FontAwesomeIcon);

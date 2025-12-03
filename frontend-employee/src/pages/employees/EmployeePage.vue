@@ -1,14 +1,21 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="user-tie" class="me-2" />
-        Quản lý nhân viên
-      </h3>
-
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Thêm nhân viên
-      </button>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="user-tie" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Quản lý nhân viên</h3>
+            <p class="header-subtitle mb-0">Quản lý tài khoản và phân quyền</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Thêm nhân viên
+        </button>
+      </div>
     </div>
 
     <!-- FILTERS -->
@@ -182,7 +189,7 @@
                     v-model="form.HoTenNV" 
                     type="text"
                     class="form-control" 
-                    required 
+                    
                     minlength="2"
                     maxlength="100"
                   />
@@ -274,10 +281,14 @@ const form = reactive({
 });
 
 const editing = ref(false);
+const originalData = ref(null);
 
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  // Reset form khi đóng modal
+  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
 });
 
 const applyFilters = () => {
@@ -328,10 +339,57 @@ const openEdit = (nv) => {
     VaiTro: nv.VaiTro,
   });
 
+  originalData.value = {
+    HoTenNV: nv.HoTenNV,
+    ChucVu: nv.ChucVu,
+    SoDienThoai: nv.SoDienThoai,
+    DiaChi: nv.DiaChi,
+    VaiTro: nv.VaiTro,
+  };
+
   modal.show();
 };
 
+const resetForm = () => {
+  Object.assign(form, {
+    MSNV: "",
+    HoTenNV: "",
+    ChucVu: "",
+    SoDienThoai: "",
+    DiaChi: "",
+    Password: "",
+    VaiTro: "ADMIN",
+  });
+  editing.value = false;
+  originalData.value = null;
+};
+
 const submitForm = async () => {
+  if (editing.value && originalData.value) {
+    const hasChanges = 
+      form.HoTenNV !== originalData.value.HoTenNV ||
+      form.ChucVu !== originalData.value.ChucVu ||
+      form.SoDienThoai !== originalData.value.SoDienThoai ||
+      form.DiaChi !== originalData.value.DiaChi ||
+      form.VaiTro !== originalData.value.VaiTro ||
+      form.Password !== "";
+    if (!hasChanges) {
+      modal.hide();
+      return;
+    }
+  }
+
+  // Kiểm tra trùng MSNV khi thêm mới
+  if (!editing.value) {
+    const exists = store.items.some(e => 
+      e.MSNV.toLowerCase().trim() === form.MSNV.toLowerCase().trim()
+    );
+    if (exists) {
+      toast.error('Mã số nhân viên đã tồn tại!');
+      return;
+    }
+  }
+
   try {
     if (editing.value) {
       await store.update(form.MSNV, form);
@@ -367,3 +425,40 @@ const remove = async (nv) => {
   }
 };
 </script>
+
+<style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+</style>

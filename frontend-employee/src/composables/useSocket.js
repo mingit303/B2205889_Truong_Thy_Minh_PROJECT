@@ -113,6 +113,7 @@ export const SOCKET_EVENTS = {
   BORROW_DELETED: "borrow:deleted",
 
   // Requests
+  REQUEST_CREATED: "request:created",
   REQUEST_ADDED: "request:added",
   REQUEST_UPDATED: "request:updated",
   REQUEST_DELETED: "request:deleted",

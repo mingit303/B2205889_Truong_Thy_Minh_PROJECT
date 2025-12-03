@@ -23,7 +23,7 @@ export const useAuthorStore = defineStore("authors", {
 
         const data = res.data;
 
-        this.items = data.data;                  // mảng tác giả
+        this.items = data.data || [];
         this.total = data.pagination.total;      // số record thật
         this.page = data.pagination.page;        // trang hiện tại
         this.limit = data.pagination.limit;    

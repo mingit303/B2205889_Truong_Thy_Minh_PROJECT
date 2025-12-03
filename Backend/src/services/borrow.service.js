@@ -123,6 +123,7 @@ exports.createBorrowRecord = async (data, employeeId) => {
 
   const now = new Date();
   const hanTra = new Date(now.getTime() + borrowDays * 86400000);
+  hanTra.setHours(23, 59, 59, 999); // Set về 23:59:59 của ngày hết hạn
 
   // Trừ số lượng tồn
   book.SoQuyen -= 1;
@@ -152,24 +153,31 @@ exports.returnBook = async (id) => {
     throw new Error("Phiếu này đã được xử lý trước đó");
   }
 
-  if (r.TrangThai !== "Đã mượn") {
-    throw new Error("Chỉ trả sách khi đang ở trạng thái 'Đã mượn'");
+  if (!["Đã mượn", "Trễ hạn"].includes(r.TrangThai)) {
+    throw new Error("Chỉ trả sách khi đang ở trạng thái 'Đã mượn' hoặc 'Trễ hạn'");
   }
 
   const now = new Date();
-  let tienPhat = 0;
+  let tienPhat = r.TienPhat || 0; // Giữ tiền phạt cũ nếu đã có
 
-  if (now > r.HanTra) {
+  // Nếu chưa có tiền phạt và bây giờ trả trễ → tính tiền phạt
+  if (tienPhat === 0 && now > r.HanTra) {
     const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
-    const daysLate = Math.ceil((now - r.HanTra) / 86400000);
+    
+    // So sánh ngày không tính giờ phút giây
+    const hanTraDate = new Date(r.HanTra);
+    hanTraDate.setHours(0, 0, 0, 0);
+    const nowDate = new Date(now);
+    nowDate.setHours(0, 0, 0, 0);
+    
+    const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
     tienPhat = daysLate * finePerDay;
     r.TienPhat = tienPhat;
     r.LyDoXuPhat = "Trễ hạn";
-    r.TrangThai = "Trễ hạn"; // lưu lại để còn in phiếu phạt
-  } else {
-    r.TrangThai = "Đã trả";
   }
-
+  
+  // Luôn chuyển về "Đã trả" khi trả sách (dù có phạt hay không)
+  r.TrangThai = "Đã trả";
   r.NgayTra = now;
 
   // Trả sách bình thường => nhập lại kho
@@ -202,7 +210,11 @@ exports.extendBorrow = async (id) => {
   }
 
   r.SoLanGiaHan += 1;
-  r.HanTra = new Date(r.HanTra.getTime() + extendDays * 86400000);
+  
+  // Gia hạn thêm số ngày và set về 23:59:59 của ngày hết hạn mới
+  const newDeadline = new Date(r.HanTra.getTime() + extendDays * 86400000);
+  newDeadline.setHours(23, 59, 59, 999);
+  r.HanTra = newDeadline;
 
   await r.save();
   return r;
@@ -227,16 +239,31 @@ exports.reportDamaged = async (id, data) => {
 
   r.MucDoHuHong = data.MucDoHuHong;
   
+  // Tính tiền phạt trễ hạn (nếu quá hạn)
+  const now = new Date();
+  let lateFine = 0;
+  if (now > r.HanTra) {
+    const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
+    
+    // So sánh ngày không tính giờ phút giây
+    const hanTraDate = new Date(r.HanTra);
+    hanTraDate.setHours(0, 0, 0, 0);
+    const nowDate = new Date(now);
+    nowDate.setHours(0, 0, 0, 0);
+    
+    const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
+    lateFine = daysLate * finePerDay;
+  }
+  
   // Tính tiền phạt hư hỏng
   const perc = data.MucDoHuHong === "Nhẹ" ? light : heavy;
   const damagePrice = Math.round((book.DonGia * perc) / 100);
   
-  // CỘNG DỒN với tiền phạt trễ hạn (nếu có)
-  const previousFine = r.TienPhat || 0;
-  r.TienPhat = previousFine + damagePrice;
+  // CỘNG DỒN: tiền phạt trễ hạn + tiền phạt hư hỏng
+  r.TienPhat = lateFine + damagePrice;
   
   // Cập nhật lý do xử phạt
-  if (previousFine > 0) {
+  if (lateFine > 0) {
     r.LyDoXuPhat = `Trễ hạn + Sách hư hỏng (${data.MucDoHuHong})`;
   } else {
     r.LyDoXuPhat = data.LyDoXuPhat || `Sách hư hỏng (${data.MucDoHuHong})`;
@@ -269,15 +296,30 @@ exports.reportLost = async (id, data) => {
 
   r.MucDoHuHong = "Mất";
   
+  // Tính tiền phạt trễ hạn (nếu quá hạn)
+  const now = new Date();
+  let lateFine = 0;
+  if (now > r.HanTra) {
+    const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
+    
+    // So sánh ngày không tính giờ phút giây
+    const hanTraDate = new Date(r.HanTra);
+    hanTraDate.setHours(0, 0, 0, 0);
+    const nowDate = new Date(now);
+    nowDate.setHours(0, 0, 0, 0);
+    
+    const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
+    lateFine = daysLate * finePerDay;
+  }
+  
   // Tính tiền phạt mất sách
   const lostPrice = Math.round((book.DonGia * lostRate) / 100) + fee;
   
-  // CỘNG DỒN với tiền phạt trễ hạn (nếu có)
-  const previousFine = r.TienPhat || 0;
-  r.TienPhat = previousFine + lostPrice;
+  // CỘNG DỒN: tiền phạt trễ hạn + tiền phạt mất sách
+  r.TienPhat = lateFine + lostPrice;
   
   // Cập nhật lý do xử phạt
-  if (previousFine > 0) {
+  if (lateFine > 0) {
     r.LyDoXuPhat = "Trễ hạn + Mất sách";
   } else {
     r.LyDoXuPhat = data.LyDoXuPhat || "Mất sách";
@@ -292,27 +334,40 @@ exports.reportLost = async (id, data) => {
 };
 
 // ===========================
-// 8) ĐÃ BỒI THƯỜNG
+// 8) XÁC NHẬN THANH TOÁN (cho hư hỏng/mất sách)
 // ===========================
 exports.markPaid = async (id) => {
   const r = await BorrowRecord.findById(id);
   if (!r) throw new Error("Không tìm thấy phiếu");
 
   if (!["Hư hỏng", "Mất sách"].includes(r.TrangThai))
-    throw new Error("Phiếu không thể bồi thường");
+    throw new Error("Phiếu không ở trạng thái hư hỏng hoặc mất sách");
 
-  r.TrangThai = "Đã bồi thường";
-  r.NgayTra = new Date();
-
-  // KHÔNG tăng tồn kho (sách hư/mất không trả lại)
+  // Chỉ đánh dấu đã thanh toán, không thay đổi TrangThai
+  r.DaThanhToanPhat = true;
 
   await r.save();
   return r;
 };
 
+// ===========================
+// 9) XÁC NHẬN ĐÃ THANH TOÁN TIỀN PHẠT
+// ===========================
+exports.confirmFinePaid = async (id) => {
+  const r = await BorrowRecord.findById(id);
+  if (!r) throw new Error("Không tìm thấy phiếu");
+
+  if (!r.TienPhat || r.TienPhat === 0) {
+    throw new Error("Phiếu này không có tiền phạt");
+  }
+
+  r.DaThanhToanPhat = true;
+  await r.save();
+  return r;
+};
 
 // ===========================
-// 9) DANH SÁCH QUÁ HẠN
+// 10) DANH SÁCH QUÁ HẠN
 // ===========================
 exports.getOverdueRecords = async () => {
   const now = new Date();

@@ -1,13 +1,21 @@
 <template>
-  <div class="container-fluid py-3">
+  <div class="container-fluid py-4">
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="book" class="me-2" /> Quản lý sách
-      </h3>
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Thêm sách
-      </button>
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="book" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Quản lý sách</h3>
+            <p class="header-subtitle mb-0">Quản lý thông tin và kho sách</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Thêm sách
+        </button>
+      </div>
     </div>
 
     <!-- FILTER -->
@@ -68,11 +76,11 @@
 
           <div class="col-md-3 text-end">
             <button class="btn btn-outline-secondary me-2" @click="resetFilter">
-              <font-awesome-icon icon="rotate-left" class="me-1" /> Reset
+              <font-awesome-icon icon="rotate-left" class="me-1" /> Xóa lọc
             </button>
-            <button class="btn btn-primary" @click="store.fetch">
+            <!-- <button class="btn btn-primary" @click="store.fetch">
               <font-awesome-icon icon="magnifying-glass" class="me-1" /> Lọc
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
@@ -194,7 +202,7 @@
                     v-model="form.TenSach" 
                     type="text"
                     class="form-control" 
-                    required 
+                    
                     minlength="2"
                     maxlength="200"
                   />
@@ -273,18 +281,34 @@
                   ></textarea>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-12">
                   <label class="form-label">Ảnh bìa</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="form-control"
-                    ref="fileInputRef"
-                    @change="onFileChange"
-                  />
+                  <div class="upload-area" @click="$refs.fileInputRef.click()">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="d-none"
+                      ref="fileInputRef"
+                      @change="onFileChange"
+                    />
+                    
+                    <div v-if="!previewImg" class="upload-placeholder">
+                      <font-awesome-icon icon="cloud-arrow-up" class="upload-icon" />
+                      <p class="mb-1 fw-semibold">Nhấn để chọn ảnh</p>
+                      <small class="text-muted">Định dạng: JPG, PNG, GIF (Tối đa 5MB)</small>
+                    </div>
+                    
+                    <div v-else class="upload-preview">
+                      <img :src="previewImg" alt="Preview" />
+                      <div class="upload-overlay">
+                        <font-awesome-icon icon="camera" class="me-2" />
+                        Thay đổi ảnh
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="col-md-6" v-if="previewImg">
+                <div class="col-md-6" v-if="false">
                   <label class="form-label d-block">Xem trước</label>
                   <img
                     :src="previewImg"
@@ -337,6 +361,7 @@ const publishers = ref([]);
 const authors = ref([]);
 
 const editing = ref(false);
+const originalData = ref(null);
 const previewImg = ref("");
 const fileInputRef = ref(null);
 
@@ -362,6 +387,9 @@ let modalInstance = null;
 onMounted(async () => {
   await Promise.all([store.fetch(), loadCombos()]);
   modalInstance = new bootstrap.Modal(modalRef.value);
+  
+  // Reset form khi đóng modal
+  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
   
   // Connect socket and listen for book events
   connect();
@@ -470,6 +498,18 @@ const openEdit = (book) => {
     AnhBia: null,
   });
 
+  // Lưu dữ liệu gốc để so sánh
+  originalData.value = {
+    TenSach: book.TenSach,
+    MaTheLoai: book.MaTheLoai?._id || "",
+    MaTacGia: book.MaTacGia?._id || "",
+    MaNXB: book.MaNXB?._id || "",
+    DonGia: book.DonGia,
+    SoQuyen: book.SoQuyen,
+    NamXuatBan: book.NamXuatBan,
+    MoTa: book.MoTa || "",
+  };
+
   // Reset input file
   if (fileInputRef.value) fileInputRef.value.value = null;
 
@@ -486,7 +526,58 @@ const onFileChange = (e) => {
   previewImg.value = URL.createObjectURL(file);
 };
 
+const resetForm = () => {
+  Object.assign(form, {
+    _id: "",
+    MaSach: "",
+    TenSach: "",
+    MaTheLoai: "",
+    MaTacGia: "",
+    MaNXB: "",
+    DonGia: null,
+    SoQuyen: null,
+    NamXuatBan: null,
+    MoTa: "",
+    AnhBia: null,
+  });
+  
+  if (fileInputRef.value) fileInputRef.value.value = null;
+  previewImg.value = "";
+  editing.value = false;
+  originalData.value = null;
+};
+
 const submitForm = async () => {
+  // Kiểm tra thay đổi khi cập nhật
+  if (editing.value && originalData.value) {
+    const hasChanges = 
+      form.TenSach !== originalData.value.TenSach ||
+      form.MaTheLoai !== originalData.value.MaTheLoai ||
+      form.MaTacGia !== originalData.value.MaTacGia ||
+      form.MaNXB !== originalData.value.MaNXB ||
+      form.DonGia !== originalData.value.DonGia ||
+      form.SoQuyen !== originalData.value.SoQuyen ||
+      form.NamXuatBan !== originalData.value.NamXuatBan ||
+      form.MoTa !== originalData.value.MoTa ||
+      form.AnhBia instanceof File;
+    
+    if (!hasChanges) {
+      modalInstance.hide();
+      return;
+    }
+  }
+
+  // Kiểm tra trùng tên sách khi thêm mới
+  if (!editing.value) {
+    const exists = store.items.some(b => 
+      b.TenSach.toLowerCase().trim() === form.TenSach.toLowerCase().trim()
+    );
+    if (exists) {
+      toast.error('Tên sách đã tồn tại!');
+      return;
+    }
+  }
+
   const fd = new FormData();
 
   const plain = { ...form };
@@ -511,7 +602,7 @@ const submitForm = async () => {
       toast.success('Đã thêm sách mới');
     }
 
-    // 🔥 Reset input file sau submit
+    // Reset input file sau submit
     if (fileInputRef.value) fileInputRef.value.value = null;
     form.AnhBia = null;
     previewImg.value = "";
@@ -542,6 +633,105 @@ const formatPrice = (v) => {
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.upload-area {
+  border: 2px dashed #d0d7de;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: #1976d2;
+  background: #e3f2fd;
+}
+
+.upload-placeholder {
+  color: #6c757d;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #1976d2;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.upload-preview {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+
+.upload-preview img {
+  max-height: 200px;
+  max-width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.upload-area:hover .upload-overlay {
+  opacity: 1;
+}
+
 .table tbody tr:hover {
   background: #f3f6ff;
 }

@@ -109,6 +109,20 @@ exports.markPaid = async (req, res) => {
 };
 
 /* ======================================================
+   EMPLOYEE — CONFIRM FINE PAID
+====================================================== */
+exports.confirmFinePaid = async (req, res) => {
+  try {
+    const record = await service.confirmFinePaid(req.params.id);
+    emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, record);
+    return success(res, record, "Đã xác nhận thanh toán tiền phạt");
+  } catch (err) {
+    console.error(err);
+    return error(res, err.message || "Lỗi xác nhận thanh toán", 400);
+  }
+};
+
+/* ======================================================
    READER — HISTORY
    req.user.id = MaDocGia
 ====================================================== */

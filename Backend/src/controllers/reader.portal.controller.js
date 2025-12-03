@@ -5,6 +5,7 @@ const BorrowRequest = require("../models/BorrowRequest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { success, error, paginate } = require("../utils/response");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 // ===============================
 // Helper: tạo token
@@ -263,6 +264,9 @@ exports.createBorrowRequest = async (req, res) => {
     // TrangThai: "Chờ duyệt",
     TrangThai: "CHO_DUYET", // ✅ dùng chung với FE
   });
+
+  // Emit socket event để employee nhận real-time
+  emitSocketEvent(SOCKET_EVENTS.REQUEST_CREATED, r);
 
   res.json({ message: "Gửi yêu cầu thành công", data: r });
 };

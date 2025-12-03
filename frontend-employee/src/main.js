@@ -19,6 +19,8 @@ import {
   faBookOpen,
   faBookOpenReader,
   faBookDead,
+  faBuilding,
+  faCalendar,
   faUser,
   faUsers,
   faUserTie,
@@ -58,6 +60,14 @@ import {
   faChartLine,
   faLock,
   faLockOpen,
+  faIdCard,
+  faBriefcase,
+  faPhone,
+  faLocationDot,
+  faShieldHalved,
+  faKey,
+  faPenToSquare,
+  faFloppyDisk,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -106,6 +116,16 @@ library.add(
   faChartLine,
   faLock,
   faLockOpen,
+  faIdCard,
+  faBriefcase,
+  faPhone,
+  faLocationDot,
+  faShieldHalved,
+  faKey,
+  faPenToSquare,
+  faFloppyDisk,
+  faBuilding,
+  faCalendar,
 );
 
 app.component("font-awesome-icon", FontAwesomeIcon);

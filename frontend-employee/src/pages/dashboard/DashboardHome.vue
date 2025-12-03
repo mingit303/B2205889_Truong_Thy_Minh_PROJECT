@@ -1,15 +1,16 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="mb-0">
-        <font-awesome-icon icon="chart-line" class="me-2" />
-        Thống kê hệ thống thư viện
-      </h4>
-      
-      <button class="btn btn-danger btn-sm" @click="exportOverallPDF">
-        <font-awesome-icon icon="file-pdf" class="me-1" />
-        Xuất báo cáo tổng quan
-      </button>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="dashboard-header mb-4">
+      <div class="d-flex align-items-center">
+        <div class="header-icon-wrapper me-3">
+          <font-awesome-icon icon="chart-line" class="header-icon" />
+        </div>
+        <div>
+          <h3 class="header-title mb-1">Thống kê hệ thống thư viện</h3>
+          <p class="header-subtitle mb-0">Tổng quan hoạt động và báo cáo</p>
+        </div>
+      </div>
     </div>
 
     <!-- ======= ROW 1: OVERVIEW CARDS ======= -->
@@ -506,3 +507,42 @@ const getFineBreakdown = (record) => {
   return { daysLate, lateFine, damageFine };
 };
 </script>
+
+<style scoped>
+.dashboard-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 28px;
+  color: white;
+}
+
+.header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+</style>

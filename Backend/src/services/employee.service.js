@@ -38,7 +38,7 @@ class EmployeeService {
       .select("-Password")
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ MSNV: 1 });
 
     const total = await Employee.countDocuments(query);
 
@@ -92,6 +92,27 @@ class EmployeeService {
     if (!emp) throw new Error("Không tìm thấy nhân viên");
 
     await Employee.deleteOne({ MSNV: id });
+    return true;
+  }
+
+  // ===============================
+  // PROFILE
+  // ===============================
+  async getEmployeeById(id) {
+    const employee = await Employee.findOne({ MSNV: id }).select("-Password");
+    return employee;
+  }
+
+  async changePassword(id, { oldPass, newPass }) {
+    const employee = await Employee.findOne({ MSNV: id });
+    if (!employee) throw new Error("Không tìm thấy nhân viên");
+
+    const ok = await bcrypt.compare(oldPass, employee.Password);
+    if (!ok) throw new Error("Mật khẩu cũ không đúng");
+
+    employee.Password = await bcrypt.hash(newPass, 10);
+    await employee.save();
+
     return true;
   }
 }

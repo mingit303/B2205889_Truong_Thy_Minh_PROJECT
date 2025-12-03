@@ -8,11 +8,16 @@
     </div>
 
     <!-- MAIN APP - CÓ SIDEBAR -->
-    <div v-else class="d-flex">
-      <ReaderSidebar />
-      <main class="content-shift">
-        <router-view :key="route.fullPath" />
-      </main>
+    <div v-else style="min-height: 100vh; display: flex; flex-direction: column;">
+      <div style="display: flex; flex: 1;">
+        <ReaderSidebar />
+        <main class="content-shift" style="flex: 1; display: flex; flex-direction: column;">
+          <div style="flex: 1;">
+            <router-view :key="route.fullPath" />
+          </div>
+          <Footer />
+        </main>
+      </div>
     </div>
 
     <!-- TOAST NOTIFICATIONS -->
@@ -29,6 +34,7 @@ import { useRoute } from "vue-router";
 import ReaderSidebar from "./components/Sidebar.vue";
 import ToastContainer from "./components/ToastContainer.vue";
 import ConfirmDialog from "./components/ConfirmDialog.vue";
+import Footer from "./components/Footer.vue";
 
 const route = useRoute();
 

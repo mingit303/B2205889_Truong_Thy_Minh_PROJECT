@@ -38,6 +38,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/borrows", borrowRoutes);
 app.use("/api/readers", readerRoutes);
 app.use("/api/reader", require("./src/routes/reader.portal.routes"));
+app.use("/api/employee", employeeRoutes); // Employee portal routes
 app.use("/api/employees", employeeRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/authors", authorRoutes);

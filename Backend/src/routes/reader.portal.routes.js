@@ -20,7 +20,7 @@ router.get("/cart", readerAuth, ctrl.getCart);
 router.post("/cart/add", readerAuth, ctrl.addToCart);
 router.delete("/cart/remove/:id", readerAuth, ctrl.removeFromCart);
 router.delete("/cart/clear", readerAuth, ctrl.clearCart);
-// 🔥 PUBLIC FILTER OPTIONS (Dropdown)
+// PUBLIC FILTER OPTIONS (Dropdown)
 router.get("/authors", require("../controllers/author.controller").getAuthors);
 router.get("/publishers", require("../controllers/publisher.controller").getPublishers);
 router.get("/categories", require("../controllers/category.controller").getAllCategories);

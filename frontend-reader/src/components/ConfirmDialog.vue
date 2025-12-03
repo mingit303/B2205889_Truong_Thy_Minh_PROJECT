@@ -7,14 +7,15 @@
   >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header" :class="{ 'danger-header': dialogData.type === 'danger' }">
           <h5 class="modal-title">
-            <font-awesome-icon :icon="getIcon(dialogData.type)" :class="getIconColor(dialogData.type)" class="me-2" />
+            <font-awesome-icon :icon="getIcon(dialogData.type)" class="me-2" />
             {{ dialogData.title }}
           </h5>
           <button
             type="button"
             class="btn-close"
+            :class="{ 'btn-close-white': dialogData.type === 'danger' }"
             @click="handleCancel"
           ></button>
         </div>
@@ -31,7 +32,7 @@
           </button>
           <button
             type="button"
-            :class="`btn btn-${dialogData.type}`"
+            :class="dialogData.type === 'danger' ? 'btn danger-btn' : `btn btn-${dialogData.type}`"
             @click="handleConfirm"
           >
             {{ dialogData.confirmText }}
@@ -80,5 +81,26 @@ const getIconColor = (type) => {
 
 .modal-backdrop {
   z-index: 9999;
+}
+
+.danger-header {
+  background: #dc3545 !important;
+  color: white !important;
+  border-bottom: none;
+}
+
+.danger-header .modal-title {
+  color: white !important;
+}
+
+.danger-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.danger-btn:hover {
+  background: #c82333;
+  color: white;
 }
 </style>

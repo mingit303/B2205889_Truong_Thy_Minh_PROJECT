@@ -17,6 +17,7 @@ import ReaderPage from "../pages/readers/ReaderPage.vue";
 import BorrowPage from "../pages/borrows/BorrowPage.vue";
 import EmployeePage from "../pages/employees/EmployeePage.vue";
 import RequestPage from "../pages/requests/RequestPage.vue";
+import ProfilePage from "../pages/profile/ProfilePage.vue";
 const routes = [
   {
     path: "/login",
@@ -46,6 +47,7 @@ const routes = [
       { path: "borrows", name: "borrows", component: BorrowPage },
       { path: "employees", name: "employees", component: EmployeePage },
       { path: "requests", name: "requests", component: RequestPage },
+      { path: "profile", name: "profile", component: ProfilePage },
     ],
   },
 ];

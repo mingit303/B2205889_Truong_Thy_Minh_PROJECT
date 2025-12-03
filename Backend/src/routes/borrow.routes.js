@@ -12,6 +12,7 @@ router.put("/:id/extend", authenticate, isEmployee, ctrl.extendBorrow);
 router.put("/:id/report-damaged", authenticate, isEmployee, ctrl.reportDamaged);
 router.put("/:id/report-lost", authenticate, isEmployee, ctrl.reportLost);
 router.put("/:id/paid", authenticate, isEmployee, ctrl.markPaid);
+router.put("/:id/confirm-fine-paid", authenticate, isEmployee, ctrl.confirmFinePaid);
 router.get("/overdue", authenticate, isEmployee, ctrl.getOverdueRecords);
 
 // READER

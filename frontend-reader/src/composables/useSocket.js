@@ -18,12 +18,10 @@ export const useSocket = () => {
         });
 
         socketInstance.on("connect", () => {
-          console.log("✅ Socket connected:", socketInstance.id);
           isConnected.value = true;
         });
 
         socketInstance.on("disconnect", () => {
-          console.log("❌ Socket disconnected");
           isConnected.value = false;
         });
 

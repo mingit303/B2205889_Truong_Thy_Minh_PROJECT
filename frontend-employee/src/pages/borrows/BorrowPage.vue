@@ -1,15 +1,22 @@
 <template>
-  <div class="container-fluid py-3">
+  <div class="container-fluid py-4">
 
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="book-open" class="me-2" /> Phiếu mượn
-      </h3>
-
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Tạo phiếu mượn
-      </button>
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="book-open" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Phiếu mượn sách</h3>
+            <p class="header-subtitle mb-0">Quản lý mượn trả và phạt</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Tạo phiếu mượn
+        </button>
+      </div>
     </div>
 
     <!-- FILTERS -->
@@ -56,20 +63,21 @@
 
     <!-- TABLE -->
     <div class="card">
-      <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="text-center" style="width:50px">#</th>
-              <th>Độc giả</th>
-              <th>Sách</th>
-              <th>Ngày mượn</th>
-              <th>Hạn trả</th>
-              <th>Trạng thái</th>
-              <th>Tiền phạt</th>
-              <th class="text-center" style="width:140px">Thao tác</th>
-            </tr>
-          </thead>
+      <div class="card-body p-0" style="overflow: visible;">
+        <div style="overflow-x: auto;">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center" style="width:50px">#</th>
+                <th>Độc giả</th>
+                <th>Sách</th>
+                <th>Ngày mượn</th>
+                <th>Hạn trả</th>
+                <th>Trạng thái</th>
+                <th>Tiền phạt</th>
+                <th class="text-center" style="width:140px">Thao tác</th>
+              </tr>
+            </thead>
 
           <tbody>
 
@@ -88,7 +96,7 @@
               <td>{{ formatDate(b.NgayMuon) }}</td>
               <td>{{ formatDate(b.HanTra) }}</td>
 
-              <td><span class="badge" :class="statusClass(b.TrangThai)">{{ b.TrangThai }}</span></td>
+              <td><span class="badge" :class="statusClass(getActualStatus(b))">{{ getActualStatus(b) }}</span></td>
 
               <!-- TIỀN PHẠT -->
               <td>
@@ -107,69 +115,17 @@
 
               <!-- ACTIONS -->
               <td class="text-center">
-                <div class="dropdown">
-                  <button
-                    class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                  >
-                    <font-awesome-icon icon="ellipsis-vertical" />
-                  </button>
-
-                  <ul class="dropdown-menu dropdown-menu-end">
-
-                    <!-- Trả sách -->
-                    <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
-                      <button class="dropdown-item" @click="openReturn(b)">
-                        <font-awesome-icon icon="rotate-left" class="me-2" /> Trả sách
-                      </button>
-                    </li>
-
-                    <!-- Gia hạn -->
-                    <li v-if="b.TrangThai === 'Đã mượn'">
-                      <button class="dropdown-item" @click="extendBorrow(b)">
-                        <font-awesome-icon icon="clock-rotate-left" class="me-2" /> Gia hạn
-                      </button>
-                    </li>
-
-                    <!-- Báo hư hỏng -->
-                    <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
-                      <button class="dropdown-item" @click="openDamaged(b)">
-                        <font-awesome-icon icon="triangle-exclamation" class="me-2" /> Báo hư hỏng
-                      </button>
-                    </li>
-
-                    <!-- Báo mất -->
-                    <li v-if="['Đã mượn','Trễ hạn'].includes(b.TrangThai)">
-                      <button class="dropdown-item" @click="openLost(b)">
-                        <font-awesome-icon icon="book-dead" class="me-2" /> Báo mất sách
-                      </button>
-                    </li>
-
-                    <!-- BỒI THƯỜNG -->
-                    <li v-if="canMarkPaid(b)">
-                      <button class="dropdown-item" @click="markPaid(b)">
-                        <font-awesome-icon icon="check" class="me-2" /> Đã bồi thường
-                      </button>
-                    </li>
-
-                    <li><hr class="dropdown-divider" /></li>
-
-                    <!-- In phiếu mượn -->
-                    <li v-if="canPrintBorrow(b)">
-                      <button class="dropdown-item" @click="printBorrow(b._id)">
-                        <font-awesome-icon icon="print" class="me-2" /> In phiếu mượn
-                      </button>
-                    </li>
-
-                    <!-- In phiếu phạt -->
-                    <li v-if="canPrintFine(b)">
-                      <button class="dropdown-item text-danger" @click="printFine(b._id)">
-                        <font-awesome-icon icon="file-pdf" class="me-2" /> In phiếu phạt
-                      </button>
-                    </li>
-
-                  </ul>
-                </div>
+                <!-- Nếu đã trả và (không có phạt HOẶC đã thanh toán phạt) thì chỉ hiện dấu gạch -->
+                <span v-if="b.NgayTra && (calcFine(b) === 0 || b.DaThanhToanPhat)" class="text-muted">—</span>
+                
+                <!-- Ngược lại hiện nút mở modal -->
+                <button
+                  v-else
+                  class="btn btn-sm btn-outline-secondary"
+                  @click="openActionsModal(b)"
+                >
+                  <font-awesome-icon icon="ellipsis-vertical" />
+                </button>
               </td>
 
             </tr>
@@ -180,6 +136,7 @@
 
           </tbody>
         </table>
+      </div>
       </div>
 
       <!-- PAGINATION -->
@@ -203,12 +160,12 @@
     <div class="modal fade" id="fineModal" tabindex="-1" ref="fineModal">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header fine-modal-header">
             <h5 class="modal-title">
-              <font-awesome-icon icon="circle-exclamation" class="me-2 text-danger" />
+              <font-awesome-icon icon="circle-exclamation" class="me-2" />
               Chi tiết tiền phạt
             </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div v-if="selectedBorrow">
@@ -257,7 +214,7 @@
                     </tr>
                   </tbody>
                   <tfoot>
-                    <tr class="table-danger fw-bold">
+                    <tr class="fine-total-row">
                       <td>TỔNG CỘNG</td>
                       <td class="text-end">
                         {{ calcFine(selectedBorrow).toLocaleString("vi-VN") }} đ
@@ -270,6 +227,93 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal fade" id="actionsModal" ref="actionsModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thao tác</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-2">
+            <div class="list-group list-group-flush">
+              <!-- Trả sách -->
+              <button
+                v-if="selectedBorrow && ['Đã mượn','Trễ hạn'].includes(getActualStatus(selectedBorrow))"
+                class="list-group-item list-group-item-action"
+                @click="handleReturn"
+              >
+                <font-awesome-icon icon="rotate-left" class="me-2 text-primary" />
+                Trả sách
+              </button>
+
+              <!-- Gia hạn -->
+              <button
+                v-if="selectedBorrow && getActualStatus(selectedBorrow) === 'Đã mượn'"
+                class="list-group-item list-group-item-action"
+                @click="handleExtend"
+              >
+                <font-awesome-icon icon="clock-rotate-left" class="me-2 text-info" />
+                Gia hạn
+              </button>
+
+              <!-- Báo hư hỏng -->
+              <button
+                v-if="selectedBorrow && ['Đã mượn','Trễ hạn'].includes(getActualStatus(selectedBorrow))"
+                class="list-group-item list-group-item-action"
+                @click="handleDamaged"
+              >
+                <font-awesome-icon icon="triangle-exclamation" class="me-2 text-warning" />
+                Báo hư hỏng
+              </button>
+
+              <!-- Báo mất -->
+              <button
+                v-if="selectedBorrow && ['Đã mượn','Trễ hạn'].includes(getActualStatus(selectedBorrow))"
+                class="list-group-item list-group-item-action"
+                @click="handleLost"
+              >
+                <font-awesome-icon icon="book-dead" class="me-2 text-danger" />
+                Báo mất sách
+              </button>
+
+              <hr class="my-1" v-if="selectedBorrow && (canPrintBorrow(selectedBorrow) || canPrintFine(selectedBorrow) || canConfirmFinePaid(selectedBorrow))" />
+
+              <!-- In phiếu mượn -->
+              <button
+                v-if="selectedBorrow && canPrintBorrow(selectedBorrow)"
+                class="list-group-item list-group-item-action"
+                @click="handlePrintBorrow"
+              >
+                <font-awesome-icon icon="print" class="me-2" />
+                In phiếu mượn
+              </button>
+
+              <!-- Xác nhận đã thanh toán tiền phạt -->
+              <button
+                v-if="selectedBorrow && canConfirmFinePaid(selectedBorrow)"
+                class="list-group-item list-group-item-action text-success"
+                @click="handleConfirmFinePaid"
+              >
+                <font-awesome-icon icon="check" class="me-2" />
+                Xác nhận đã thanh toán phạt
+              </button>
+
+              <!-- In phiếu phạt -->
+              <button
+                v-if="selectedBorrow && canPrintFine(selectedBorrow)"
+                class="list-group-item list-group-item-action text-danger"
+                @click="handlePrintFine"
+              >
+                <font-awesome-icon icon="file-pdf" class="me-2" />
+                In phiếu phạt
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -297,12 +341,17 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { connect, disconnect, on, off } = useSocket();
 const fineModal = ref(null);
+const actionsModal = ref(null);
 const selectedBorrow = ref(null);
 let fineModalInstance = null;
+let actionsModalInstance = null;
 
 onMounted(() => {
   store.fetch();
   fineModalInstance = new Modal(fineModal.value);
+  if (actionsModal.value) {
+    actionsModalInstance = new Modal(actionsModal.value);
+  }
   
   connect();
   on(SOCKET_EVENTS.BORROW_ADDED, () => store.fetch());
@@ -316,6 +365,22 @@ onUnmounted(() => {
   off(SOCKET_EVENTS.BORROW_DELETED);
   disconnect();
 });
+
+const openActionsModal = (borrow) => {
+  selectedBorrow.value = borrow;
+  if (!actionsModalInstance && actionsModal.value) {
+    actionsModalInstance = new Modal(actionsModal.value);
+  }
+  if (actionsModalInstance) {
+    actionsModalInstance.show();
+  }
+};
+
+const closeActionsModal = () => {
+  if (actionsModalInstance) {
+    actionsModalInstance.hide();
+  }
+};
 
 const showFineDetail = (borrow) => {
   selectedBorrow.value = borrow;
@@ -348,6 +413,28 @@ const rowNumber = (idx) => (store.page - 1) * store.limit + idx + 1;
 /* FORMATTERS */
 const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
 
+/* GET ACTUAL STATUS - Kiểm tra thời gian để xác định trễ hạn */
+const getActualStatus = (b) => {
+  // Nếu đã có NgayTra (đã trả sách) thì luôn giữ nguyên trạng thái từ database
+  if (b.NgayTra) {
+    return b.TrangThai;
+  }
+  
+  // Nếu chưa trả và đang mượn, kiểm tra xem có quá hạn không
+  if (b.TrangThai === 'Đã mượn' && b.HanTra) {
+    const hanTra = new Date(b.HanTra);
+    const now = new Date();
+    // Hạn trả tính đến 23:59:59 của ngày đó
+    hanTra.setHours(23, 59, 59, 999);
+    
+    if (now > hanTra) {
+      return 'Trễ hạn';
+    }
+  }
+  
+  return b.TrangThai;
+};
+
 /* STATUS COLORS */
 const statusClass = (st) =>
   ({
@@ -379,7 +466,14 @@ const getFineBreakdown = (b) => {
   if (b.NgayTra && b.HanTra) {
     const hanTra = new Date(b.HanTra);
     const ngayTra = new Date(b.NgayTra);
+    
+    // Set hạn trả về 23:59:59 của ngày đó
+    hanTra.setHours(23, 59, 59, 999);
+    // Set ngày trả về 00:00:00 để tính từ đầu ngày
+    ngayTra.setHours(0, 0, 0, 0);
+    
     if (ngayTra > hanTra) {
+      // Tính số ngày trễ
       daysLate = Math.ceil((ngayTra - hanTra) / 86400000);
       lateFine = daysLate * 5000;
     }
@@ -393,14 +487,23 @@ const getFineBreakdown = (b) => {
 };
 
 /* CONDITIONS */
-const canPrintBorrow = (b) => b.TrangThai === "Đã mượn";
+const canPrintBorrow = (b) => {
+  const actualStatus = getActualStatus(b);
+  return ['Đã mượn', 'Trễ hạn'].includes(actualStatus);
+};
 
-const canPrintFine = (b) =>
-  ["Trễ hạn","Hư hỏng","Mất sách","Đã bồi thường"].includes(b.TrangThai) &&
-  calcFine(b) > 0;
+const canPrintFine = (b) => {
+  // Có thể in phiếu phạt nếu có tiền phạt > 0 và chưa thanh toán
+  return calcFine(b) > 0 && !b.DaThanhToanPhat;
+};
 
-const canMarkPaid = (b) =>
-  ["Hư hỏng", "Mất sách"].includes(b.TrangThai);
+const canConfirmFinePaid = (b) => {
+  // Hiện nút xác nhận thanh toán cho MỌI trường hợp có phạt:
+  // - Đã xử lý xong (có NgayTra): trễ hạn, hư hỏng, mất sách
+  // - Có tiền phạt > 0
+  // - Chưa xác nhận thanh toán
+  return b.NgayTra && calcFine(b) > 0 && !b.DaThanhToanPhat;
+};
 
 /* ACTIONS */
 const createModal = ref(null);
@@ -412,6 +515,42 @@ const openCreate = () => createModal.value?.open();
 const openReturn = (b) => returnModal.value?.open(b);
 const openDamaged = (b) => damagedModal.value?.open(b);
 const openLost = (b) => lostModal.value?.open(b);
+
+// Handler functions from modal
+const handleReturn = () => {
+  closeActionsModal();
+  openReturn(selectedBorrow.value);
+};
+
+const handleExtend = async () => {
+  closeActionsModal();
+  await extendBorrow(selectedBorrow.value);
+};
+
+const handleDamaged = () => {
+  closeActionsModal();
+  openDamaged(selectedBorrow.value);
+};
+
+const handleLost = () => {
+  closeActionsModal();
+  openLost(selectedBorrow.value);
+};
+
+const handlePrintBorrow = () => {
+  closeActionsModal();
+  printBorrow(selectedBorrow.value._id);
+};
+
+const handlePrintFine = () => {
+  closeActionsModal();
+  printFine(selectedBorrow.value._id);
+};
+
+const handleConfirmFinePaid = async () => {
+  closeActionsModal();
+  await confirmFinePaid(selectedBorrow.value);
+};
 
 const extendBorrow = async (b) => {
   try {
@@ -425,14 +564,14 @@ const extendBorrow = async (b) => {
   }
 };
 
-const markPaid = async (b) => {
+const confirmFinePaid = async (b) => {
   try {
-    await confirm("Xác nhận độc giả đã bồi thường?");
-    await store.markPaid(b._id);
-    toast.success('Đã xác nhận bồi thường');
+    await confirm("Xác nhận độc giả đã thanh toán tiền phạt?");
+    await store.confirmFinePaid(b._id);
+    toast.success('Đã xác nhận thanh toán tiền phạt');
   } catch (err) {
     if (err && err.response) {
-      toast.error(err.response?.data?.message || 'Lỗi xác nhận bồi thường');
+      toast.error(err.response?.data?.message || 'Lỗi xác nhận');
     }
   }
 };
@@ -447,7 +586,62 @@ const printFine = (id) => {
 </script>
 
 <style scoped>
-.dropdown-menu {
-  font-size: 14px;
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 28px;
+  color: white;
+}
+
+.header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.fine-modal-header {
+  background: #dc3545;
+  color: white;
+}
+
+.fine-modal-header .modal-title {
+  color: white;
+}
+
+.fine-total-row {
+  background-color: #dc3545 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+.fine-total-row td {
+  background-color: #dc3545 !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-color: #dc3545 !important;
 }
 </style>

@@ -22,7 +22,7 @@ export const usePublisherStore = defineStore("publishers", {
         });
 
         const data = res.data;
-        this.items = data.data;
+        this.items = data.data || [];
         this.total = data.pagination.total;
         this.page = data.pagination.page;
         this.limit = data.pagination.limit;

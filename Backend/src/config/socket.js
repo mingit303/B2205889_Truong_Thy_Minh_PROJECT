@@ -26,6 +26,7 @@ const SOCKET_EVENTS = {
   BORROW_DELETED: "borrow:deleted",
 
   // Requests
+  REQUEST_CREATED: "request:created",
   REQUEST_ADDED: "request:added",
   REQUEST_UPDATED: "request:updated",
   REQUEST_DELETED: "request:deleted",
@@ -35,7 +36,7 @@ const SOCKET_EVENTS = {
 const emitSocketEvent = (event, data) => {
   if (global.io) {
     global.io.emit(event, data);
-    console.log(`Socket event emitted: ${event}`, data);
+    // console.log(`Socket event emitted: ${event}`, data);
   }
 };
 

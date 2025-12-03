@@ -1,9 +1,17 @@
 <template>
   <div class="container py-4">
-    <h3 class="fw-bold mb-4 d-flex align-items-center gap-2">
-      <font-awesome-icon icon="envelope-open-text" />
-      Yêu cầu mượn sách
-    </h3>
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center">
+        <div class="header-icon-wrapper me-3">
+          <font-awesome-icon icon="envelope-open-text" class="header-icon" />
+        </div>
+        <div>
+          <h3 class="header-title mb-1">Yêu cầu mượn sách</h3>
+          <p class="header-subtitle mb-0">Theo dõi trạng thái yêu cầu của bạn</p>
+        </div>
+      </div>
+    </div>
 
     <!-- FILTER -->
     <div class="card p-3 mb-3">
@@ -25,19 +33,36 @@
         <font-awesome-icon icon="envelope-open-text" class="main-icon" />
       </div>
       
-      <h4 class="mt-4 mb-2 fw-bold">Chưa có yêu cầu mượn sách</h4>
-      <p class="text-muted mb-4">Bạn chưa gửi yêu cầu mượn nào. Hãy thêm sách vào giỏ và gửi yêu cầu!</p>
+      <h4 class="mt-4 mb-2 fw-bold">Không tìm thấy yêu cầu mượn nào</h4>
+      <p class="text-muted mb-4">
+        <span v-if="filterStatus">với trạng thái "{{ mapStatus(filterStatus) }}". Thử thay đổi bộ lọc.</span>
+        <span v-else>Bạn chưa gửi yêu cầu mượn nào. Hãy thêm sách vào giỏ và gửi yêu cầu!</span>
+      </p>
       
-      <router-link to="/" class="btn btn-primary px-4">
+      <button v-if="filterStatus" class="btn btn-primary px-4 me-2" @click="filterStatus = ''">
+        <font-awesome-icon icon="eraser" class="me-2" />
+        Xóa bộ lọc
+      </button>
+      
+      <router-link v-else to="/" class="btn btn-primary px-4">
         <font-awesome-icon icon="book" class="me-2" />
         Khám phá sách ngay
       </router-link>
     </div>
 
     <!-- NO RESULTS FOR FILTER -->
-    <div v-else-if="filteredItems.length === 0" class="alert alert-info text-center">
-      <font-awesome-icon icon="circle-info" class="me-2" />
-      Không có yêu cầu nào với trạng thái "{{ mapStatus(filterStatus) }}"
+    <div v-else-if="filteredItems.length === 0" class="empty-wrapper">
+      <div class="empty-icon">
+        <font-awesome-icon icon="envelope-open-text" class="main-icon" />
+      </div>
+      
+      <h4 class="mt-4 mb-2 fw-bold">Không tìm thấy yêu cầu nào</h4>
+      <p class="text-muted mb-4">với trạng thái "{{ mapStatus(filterStatus) }}". Thử thay đổi bộ lọc.</p>
+      
+      <button class="btn btn-primary px-4" @click="filterStatus = ''">
+        <font-awesome-icon icon="eraser" class="me-2" />
+        Xóa bộ lọc
+      </button>
     </div>
 
     <!-- REQUEST LIST -->
@@ -246,8 +271,62 @@ const formatDate = (date) => {
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
 .accordion-button {
   padding: 14px 18px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.accordion-button:not(.collapsed) .text-muted,
+.accordion-button:not(.collapsed) small {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border: none;
 }
 
 .accordion-item {

@@ -15,7 +15,7 @@ class CategoryService {
     const categories = await Category.find(query)
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ TenTheLoai: 1 });
+      .sort({ MaTheLoai: 1 });
 
     const total = await Category.countDocuments(query);
 
@@ -23,7 +23,7 @@ class CategoryService {
   }
 
   async getAllCategories() {
-    const categories = await Category.find({}).sort({ TenTheLoai: 1 });
+    const categories = await Category.find({}).sort({ MaTheLoai: 1 });
     return categories;
   }
 

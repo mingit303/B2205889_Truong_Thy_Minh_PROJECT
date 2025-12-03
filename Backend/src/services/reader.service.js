@@ -34,7 +34,7 @@ class ReaderService {
       .select("-MatKhau")
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ MaDocGia: 1 });
 
     const total = await Reader.countDocuments(query);
 

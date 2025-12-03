@@ -13,8 +13,8 @@ class BookService {
       maxPrice,
       minYear,
       maxYear,
-      sortBy = "createdAt",
-      sortOrder = "desc",
+      sortBy = "MaSach",
+      sortOrder = "asc",
     } = queryParams;
 
     const skip = (page - 1) * limit;
@@ -59,8 +59,9 @@ class BookService {
       price: "DonGia",
       year: "NamXuatBan",
       name: "TenSach",
+      MaSach: "MaSach",
     };
-    const sortKey = sortFields[sortBy] || "createdAt";
+    const sortKey = sortFields[sortBy] || "MaSach";
 
     const books = await Book.find(query)
       .populate("MaTheLoai", "MaTheLoai TenTheLoai")

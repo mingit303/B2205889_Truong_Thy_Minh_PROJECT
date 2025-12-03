@@ -1,13 +1,21 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="users" class="me-2" /> Quản lý độc giả
-      </h3>
-
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Thêm độc giả
-      </button>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="users" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Quản lý độc giả</h3>
+            <p class="header-subtitle mb-0">Quản lý thông tin thành viên thư viện</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Thêm độc giả
+        </button>
+      </div>
     </div>
 
     <!-- FILTER -->
@@ -150,7 +158,7 @@
                     type="text"
                     class="form-control" 
                     :disabled="editing" 
-                    required 
+                    
                     minlength="3"
                     maxlength="20"
                   />
@@ -158,7 +166,7 @@
 
                 <div class="col-md-6">
                   <label class="form-label">Email *</label>
-                  <input type="email" v-model="form.Email" class="form-control" required />
+                  <input type="email" v-model="form.Email" class="form-control" />
                 </div>
 
                 <div class="col-md-6">
@@ -167,7 +175,7 @@
                     v-model="form.HoLot" 
                     type="text"
                     class="form-control" 
-                    required 
+                    
                     minlength="1"
                     maxlength="50"
                   />
@@ -179,7 +187,7 @@
                     v-model="form.Ten" 
                     type="text"
                     class="form-control" 
-                    required 
+                    
                     minlength="1"
                     maxlength="20"
                   />
@@ -226,7 +234,7 @@
                     type="password" 
                     v-model="form.MatKhau" 
                     class="form-control" 
-                    required 
+                    
                     minlength="6"
                   />
                 </div>
@@ -265,6 +273,7 @@ const modalRef = ref(null);
 let modal = null;
 
 const editing = ref(false);
+const originalData = ref(null);
 
 const form = reactive({
   MaDocGia: "",
@@ -281,6 +290,9 @@ const form = reactive({
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  // Reset form khi đóng modal
+  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
   
   connect();
   on(SOCKET_EVENTS.READER_ADDED, () => store.fetch());
@@ -344,10 +356,70 @@ const openEdit = (d) => {
     Email: d.Email,
     MatKhau: "",
   });
+  originalData.value = {
+    HoLot: d.HoLot,
+    Ten: d.Ten,
+    NgaySinh: d.NgaySinh ? d.NgaySinh.substring(0, 10) : "",
+    Phai: d.Phai,
+    DiaChi: d.DiaChi,
+    DienThoai: d.DienThoai,
+    Email: d.Email,
+  };
   modal.show();
 };
 
+const resetForm = () => {
+  Object.assign(form, {
+    MaDocGia: "",
+    HoLot: "",
+    Ten: "",
+    NgaySinh: "",
+    Phai: "Nam",
+    DiaChi: "",
+    DienThoai: "",
+    Email: "",
+    MatKhau: "",
+  });
+  editing.value = false;
+  originalData.value = null;
+};
+
 const submitForm = async () => {
+  if (editing.value && originalData.value) {
+    const hasChanges = 
+      form.HoLot !== originalData.value.HoLot ||
+      form.Ten !== originalData.value.Ten ||
+      form.NgaySinh !== originalData.value.NgaySinh ||
+      form.Phai !== originalData.value.Phai ||
+      form.DiaChi !== originalData.value.DiaChi ||
+      form.DienThoai !== originalData.value.DienThoai ||
+      form.Email !== originalData.value.Email ||
+      form.MatKhau !== "";
+    if (!hasChanges) {
+      modal.hide();
+      return;
+    }
+  }
+
+  // Kiểm tra trùng mã độc giả và email khi thêm mới
+  if (!editing.value) {
+    const existsCode = store.items.some(r => 
+      r.MaDocGia.toLowerCase().trim() === form.MaDocGia.toLowerCase().trim()
+    );
+    if (existsCode) {
+      toast.error('Mã độc giả đã tồn tại!');
+      return;
+    }
+    
+    const existsEmail = store.items.some(r => 
+      r.Email.toLowerCase().trim() === form.Email.toLowerCase().trim()
+    );
+    if (existsEmail) {
+      toast.error('Email đã được sử dụng!');
+      return;
+    }
+  }
+
   try {
     if (editing.value) {
       await store.update(form.MaDocGia, form);
@@ -383,3 +455,42 @@ const remove = async (d) => {
   }
 };
 </script>
+
+<style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 28px;
+  color: white;
+}
+
+.header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+</style>

@@ -1,21 +1,27 @@
 <template>
   <div class="container py-4">
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold">
-        <font-awesome-icon icon="book" class="me-2" />
-        Sách
-      </h2>
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="book" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Khám phá sách</h3>
+            <p class="header-subtitle mb-0">Tìm kiếm và chọn sách yêu thích của bạn</p>
+          </div>
+        </div>
+        <!-- CART BUTTON -->
+        <router-link to="/cart" class="cart-btn position-relative">
+          <font-awesome-icon icon="cart-shopping" class="cart-icon" />
 
-      <!-- CART BUTTON -->
-      <router-link to="/cart" class="cart-btn position-relative">
-        <font-awesome-icon icon="cart-shopping" class="cart-icon" />
-
-        <!-- BADGE NỔI RA NGOÀI -->
-        <span v-if="cartCount > 0" class="cart-badge">
-          {{ cartCount }}
-        </span>
-      </router-link>
+          <!-- BADGE NỔI RA NGOÀI -->
+          <span v-if="cartCount > 0" class="cart-badge">
+            {{ cartCount }}
+          </span>
+        </router-link>
+      </div>
     </div>
 
     <!-- FILTER -->
@@ -73,7 +79,7 @@
 
         <div class="col-md-2">
           <button class="btn btn-outline-secondary w-100" @click="clearFilters">
-            <font-awesome-icon icon="eraser" class="me-1" />
+            <font-awesome-icon icon="rotate-left" class="me-1" />
             Xóa lọc
           </button>
         </div>
@@ -81,10 +87,28 @@
       </div>
     </div>
 
+    <!-- EMPTY STATE -->
+    <div v-if="books.length === 0" class="empty-state-wrapper">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="book" class="book-icon" />
+      </div>
+      
+      <h4 class="mt-4 mb-2 fw-bold">Không tìm thấy sách nào</h4>
+      <p class="text-muted mb-4">
+        <span v-if="hasActiveFilters">với bộ lọc hiện tại. Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</span>
+        <span v-else>Hiện tại chưa có sách nào trong hệ thống.</span>
+      </p>
+      
+      <button v-if="hasActiveFilters" class="btn btn-primary px-4" @click="clearFilters">
+        <font-awesome-icon icon="rotate-left" class="me-2" />
+        Xóa tất cả bộ lọc
+      </button>
+    </div>
+
     <!-- BOOK LIST -->
-    <div class="row g-4">
+    <div class="row g-4" v-else>
       <div class="col-md-3" v-for="book in books" :key="book.MaSach">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 book-card">
 
           <!-- IMG + BADGE -->
           <div class="cover-wrapper position-relative">
@@ -129,7 +153,7 @@
     </div>
 
     <!-- PAGINATION -->
-    <div class="mt-4">
+    <div class="mt-4" v-if="total > 0">
       <Pagination
         :page="page"
         :limit="limit"
@@ -203,15 +227,15 @@ onMounted(() => {
   
   connect();
   on(SOCKET_EVENTS.BOOK_ADDED, () => {
-    console.log('📦 Book added - refreshing');
+    console.log('Book added - refreshing');
     fetch();
   });
   on(SOCKET_EVENTS.BOOK_UPDATED, () => {
-    console.log('✏️ Book updated - refreshing');
+    console.log('Book updated - refreshing');
     fetch();
   });
   on(SOCKET_EVENTS.BOOK_DELETED, () => {
-    console.log('🗑️ Book deleted - refreshing');
+    console.log('Book deleted - refreshing');
     fetch();
   });
 });
@@ -224,6 +248,12 @@ onUnmounted(() => {
 });
 
 const addToCart = async (book) => {
+  // Kiểm tra giới hạn 5 cuốn
+  if (cartStore.items.length >= 5) {
+    toast.error('Bạn chỉ được mượn tối đa 5 cuốn sách cùng lúc!');
+    return;
+  }
+  
   try {
     await cartStore.add(book.MaSach);
     toast.success(`Đã thêm "${book.TenSach}" vào giỏ`);
@@ -249,15 +279,63 @@ const clearFilters = () => {
   bookStore.fetch();
 };
 
+const hasActiveFilters = computed(() => {
+  return keyword.value || status.value || authorId.value || publisherId.value || categoryId.value;
+});
+
 const cartCount = computed(() => cartStore.count);
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.book-card {
+  transition: all 0.3s ease;
+  border: 2px solid #e3f2fd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+  border-color: #1976d2;
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.2);
+}
+
 .card {
   transition: 0.2s;
-}
-.card:hover {
-  transform: translateY(-4px);
 }
 
 /* BOOK COVER */
@@ -328,5 +406,32 @@ const cartCount = computed(() => cartStore.count);
   font-weight: bold;
 
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+
+/* EMPTY STATE */
+.empty-state-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.empty-state-icon .book-icon {
+  font-size: 3.5rem;
+  color: #1e88e5;
 }
 </style>

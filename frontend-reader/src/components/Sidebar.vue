@@ -1,58 +1,64 @@
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar d-flex flex-column bg-primary text-white position-fixed top-0 start-0 h-100 shadow">
 
     <!-- LOGO + TITLE -->
-    <div class="sidebar-header d-flex align-items-center gap-2">
-      <font-awesome-icon icon="book-open" />
-      <span class="fw-bold">MingMing Library</span>
+    <div class="sidebar-header d-flex align-items-center px-3 py-3 border-bottom border-light">
+      <img src="../assets/frontend_logo.png" alt="Logo" class="sidebar-logo me-2" />
+      <div>
+        <div class="fw-bold">MingMing Library</div>
+        <small class="text-light opacity-75">Reader Panel</small>
+      </div>
     </div>
 
     <!-- MENU -->
-    <ul class="menu">
+    <div class="flex-grow-1 mt-2">
+      <ul class="nav flex-column">
 
-      <li>
-        <RouterLink to="/" class="menu-item">
-          <font-awesome-icon icon="book" />
+      <li class="nav-item">
+        <RouterLink to="/" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/') && route.path === '/' }">
+          <font-awesome-icon icon="book" class="me-2" />
           <span>Sách</span>
         </RouterLink>
       </li>
 
-      <li>
-        <RouterLink to="/cart" class="menu-item">
-          <font-awesome-icon icon="cart-shopping" />
+      <li class="nav-item">
+        <RouterLink to="/cart" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/cart') }">
+          <font-awesome-icon icon="cart-shopping" class="me-2" />
           <span>Giỏ mượn</span>
         </RouterLink>
       </li>
 
-      <li>
-        <RouterLink to="/requests" class="menu-item">
-          <font-awesome-icon icon="envelope-open-text" />
+      <li class="nav-item">
+        <RouterLink to="/requests" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/requests') }">
+          <font-awesome-icon icon="envelope-open-text" class="me-2" />
           <span>Yêu cầu mượn</span>
         </RouterLink>
       </li>
 
-      <li>
-        <RouterLink to="/history" class="menu-item">
-          <font-awesome-icon icon="clock-rotate-left" />
+      <li class="nav-item">
+        <RouterLink to="/history" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/history') }">
+          <font-awesome-icon icon="clock-rotate-left" class="me-2" />
           <span>Lịch sử</span>
         </RouterLink>
       </li>
 
-      <li>
-        <RouterLink to="/profile" class="menu-item">
-          <font-awesome-icon icon="user" />
+      <li class="nav-item">
+        <RouterLink to="/profile" class="nav-link text-white d-flex align-items-center px-3" :class="{ active: isActive('/profile') }">
+          <font-awesome-icon icon="user" class="me-2" />
           <span>Hồ sơ</span>
         </RouterLink>
       </li>
 
     </ul>
+    </div>
 
     <!-- FOOTER: USER + LOGOUT -->
-    <div class="sidebar-footer">
-      <div class="user-name">Hi, {{ fullName }}</div>
+    <div class="sidebar-footer border-top border-light px-3 py-3">
+      <div class="mb-2 small opacity-75">Xin chào,</div>
+      <div class="fw-bold mb-2">{{ fullName }}</div>
 
-      <button class="btn btn-light w-100 mt-2 logout-btn" @click="logout">
-        <font-awesome-icon icon="right-from-bracket" class="me-2" />
+      <button class="btn btn-sm btn-light w-100 text-center" @click="logout">
+        <font-awesome-icon icon="right-from-bracket" class="me-1" />
         Đăng xuất
       </button>
     </div>
@@ -62,13 +68,16 @@
 
 <script setup>
 import { computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useToast } from "../composables/useToast";
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const toast = useToast();
+
+const isActive = (path) => route.path.startsWith(path);
 
 const fullName = computed(() =>
   auth.reader ? `${auth.reader.HoLot} ${auth.reader.Ten}` : "Reader"
@@ -83,62 +92,31 @@ const logout = () => {
 
 <style scoped>
 .sidebar {
-  width: 250px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  background: #0d6efd;
-  color: white;
-  padding: 20px 15px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  width: 240px;
 }
 
-.sidebar-header {
-  font-size: 1.3rem;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.menu {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0;
-  flex-grow: 1;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-  padding: 12px;
+.sidebar-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
   border-radius: 8px;
-  text-decoration: none;
+  background: white;
+  padding: 4px;
 }
 
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.15);
+.nav-link {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  opacity: 0.9;
 }
 
-.router-link-active {
-  background: rgba(0, 0, 0, 0.25);
-  font-weight: 600;
+.nav-link.active,
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 1;
 }
 
 .sidebar-footer {
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.user-name {
-  font-weight: 500;
-}
-
-.logout-btn {
-  border-radius: 6px;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
 }
 </style>

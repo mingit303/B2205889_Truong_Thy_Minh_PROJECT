@@ -18,8 +18,6 @@ export const useBookStore = defineStore("books", {
     maxPrice: "",
     minYear: "",
     maxYear: "",
-    sortBy: "createdAt",
-    sortOrder: "desc",
   }),
 
   actions: {
@@ -37,8 +35,6 @@ export const useBookStore = defineStore("books", {
           maxPrice: this.maxPrice || undefined,
           minYear: this.minYear || undefined,
           maxYear: this.maxYear || undefined,
-          sortBy: this.sortBy,
-          sortOrder: this.sortOrder,
         };
 
         const res = await bookApi.getList(params);

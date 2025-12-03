@@ -61,5 +61,10 @@ export const useBorrowStore = defineStore("borrow", {
       await http.put(`/borrows/${id}/paid`);
       await this.fetch();
     },
+
+    async confirmFinePaid(id) {
+      await http.put(`/borrows/${id}/confirm-fine-paid`);
+      await this.fetch();
+    },
   },
 });

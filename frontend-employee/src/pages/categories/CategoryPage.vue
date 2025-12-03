@@ -1,14 +1,21 @@
 <template>
-  <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">
-        <font-awesome-icon icon="tags" class="me-2" />
-        Thể loại
-      </h3>
-
-      <button class="btn btn-success" @click="openCreate">
-        <font-awesome-icon icon="plus" class="me-1" /> Thêm thể loại
-      </button>
+  <div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="header-icon-wrapper me-3">
+            <font-awesome-icon icon="tags" class="header-icon" />
+          </div>
+          <div>
+            <h3 class="header-title mb-1">Thể loại</h3>
+            <p class="header-subtitle mb-0">Quản lý thể loại sách</p>
+          </div>
+        </div>
+        <button class="btn btn-success" @click="openCreate">
+          <font-awesome-icon icon="plus" class="me-1" /> Thêm thể loại
+        </button>
+      </div>
     </div>
 
     <!-- SEARCH -->
@@ -92,7 +99,7 @@
                   type="text"
                   class="form-control" 
                   :disabled="editing" 
-                  required 
+                  
                   minlength="2"
                   maxlength="20"
                 />
@@ -104,7 +111,7 @@
                   v-model="form.TenTheLoai" 
                   type="text"
                   class="form-control" 
-                  required 
+                  
                   minlength="2"
                   maxlength="100"
                 />
@@ -142,11 +149,15 @@ const form = reactive({
 });
 
 const editing = ref(false);
+const originalData = ref(null);
 
 onMounted(() => {
   store.fetch();
   store.fetchAll();
   modal = new bootstrap.Modal(modalRef.value);
+  
+  // Reset form khi đóng modal
+  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
 });
 
 const handleSearch = () => {
@@ -172,10 +183,45 @@ const openEdit = (c) => {
   editing.value = true;
   form.MaTheLoai = c.MaTheLoai;
   form.TenTheLoai = c.TenTheLoai;
+  originalData.value = { TenTheLoai: c.TenTheLoai };
   modal.show();
 };
 
+const resetForm = () => {
+  form.MaTheLoai = "";
+  form.TenTheLoai = "";
+  editing.value = false;
+  originalData.value = null;
+};
+
 const submitForm = async () => {
+  if (editing.value && originalData.value) {
+    const hasChanges = form.TenTheLoai !== originalData.value.TenTheLoai;
+    if (!hasChanges) {
+      modal.hide();
+      return;
+    }
+  }
+
+  // Kiểm tra trùng tên thể loại khi thêm mới
+  if (!editing.value) {
+    const existsCode = store.items.some(c => 
+      c.MaTheLoai.toLowerCase().trim() === form.MaTheLoai.toLowerCase().trim()
+    );
+    if (existsCode) {
+      toast.error('Mã thể loại đã tồn tại!');
+      return;
+    }
+    
+    const existsName = store.items.some(c => 
+      c.TenTheLoai.toLowerCase().trim() === form.TenTheLoai.toLowerCase().trim()
+    );
+    if (existsName) {
+      toast.error('Tên thể loại đã tồn tại!');
+      return;
+    }
+  }
+
   try {
     if (editing.value) {
       await store.update(form.MaTheLoai, form);
@@ -202,3 +248,40 @@ const remove = async (c) => {
   }
 };
 </script>
+
+<style scoped>
+.page-header {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
+  color: white;
+}
+
+.header-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.header-icon {
+  font-size: 1.8rem;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0;
+}
+</style>

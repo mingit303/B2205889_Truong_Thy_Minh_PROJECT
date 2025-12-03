@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-4">
+  <div class="container-fluid px-4 py-4">
     <div class="row">
       <div class="col-lg-8 mx-auto">
         
@@ -21,10 +21,10 @@
             <div class="row mb-3">
               <div class="col-md-4 text-muted">
                 <font-awesome-icon icon="id-card" class="me-2" />
-                Mã độc giả
+                Mã nhân viên
               </div>
               <div class="col-md-8">
-                <strong>{{ auth.reader.MaDocGia }}</strong>
+                <strong>{{ auth.user.MSNV }}</strong>
               </div>
             </div>
 
@@ -34,17 +34,17 @@
                 Họ và tên
               </div>
               <div class="col-md-8">
-                <strong>{{ auth.reader.HoLot }} {{ auth.reader.Ten }}</strong>
+                <strong>{{ auth.user.HoTenNV }}</strong>
               </div>
             </div>
 
             <div class="row mb-3">
               <div class="col-md-4 text-muted">
-                <font-awesome-icon icon="envelope" class="me-2" />
-                Email
+                <font-awesome-icon icon="briefcase" class="me-2" />
+                Chức vụ
               </div>
               <div class="col-md-8">
-                {{ auth.reader.Email }}
+                {{ auth.user.ChucVu || "—" }}
               </div>
             </div>
 
@@ -54,7 +54,7 @@
                 Số điện thoại
               </div>
               <div class="col-md-8">
-                {{ auth.reader.DienThoai || "—" }}
+                {{ auth.user.SoDienThoai || "—" }}
               </div>
             </div>
 
@@ -64,7 +64,17 @@
                 Địa chỉ
               </div>
               <div class="col-md-8">
-                {{ auth.reader.DiaChi || "—" }}
+                {{ auth.user.DiaChi || "—" }}
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-4 text-muted">
+                <font-awesome-icon icon="shield-halved" class="me-2" />
+                Vai trò
+              </div>
+              <div class="col-md-8">
+                <span class="badge bg-primary">{{ auth.user.VaiTro }}</span>
               </div>
             </div>
 
@@ -75,7 +85,7 @@
                 <font-awesome-icon icon="key" class="me-2" />
                 Đổi mật khẩu
               </button>
-              <button class="btn btn-gradient-primary" @click="openUpdate">
+              <button class="btn btn-primary" @click="openUpdate">
                 <font-awesome-icon icon="pen-to-square" class="me-2" />
                 Cập nhật thông tin
               </button>
@@ -93,63 +103,48 @@
         <div class="modal-content">
 
           <form @submit.prevent="saveProfile">
-            <div class="modal-header modal-header-gradient text-white">
+            <div class="modal-header">
               <h5 class="modal-title">
                 <font-awesome-icon icon="pen-to-square" class="me-2" />
                 Cập nhật thông tin
               </h5>
-              <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
 
               <div class="mb-3">
                 <label class="form-label">
-                  Họ lót <span class="text-danger">*</span>
+                  Họ và tên <span class="text-danger">*</span>
                 </label>
                 <input 
-                  v-model="form.HoLot" 
+                  v-model="form.HoTenNV" 
                   type="text"
                   class="form-control" 
-                  placeholder="Nhập họ lót"
-                  required 
+                  placeholder="Nhập họ và tên"
+                  
                   minlength="1"
-                  maxlength="50"
+                  maxlength="100"
                 />
               </div>
 
               <div class="mb-3">
                 <label class="form-label">
-                  Tên <span class="text-danger">*</span>
+                  Chức vụ
                 </label>
                 <input 
-                  v-model="form.Ten" 
+                  v-model="form.ChucVu" 
                   type="text"
                   class="form-control"
-                  placeholder="Nhập tên" 
-                  required 
-                  minlength="1"
-                  maxlength="20"
-                />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">
-                  Email <span class="text-danger">*</span>
-                </label>
-                <input 
-                  v-model="form.Email" 
-                  type="email"
-                  class="form-control"
-                  placeholder="example@email.com"
-                  required 
+                  placeholder="Nhập chức vụ"
+                  maxlength="50"
                 />
               </div>
 
               <div class="mb-3">
                 <label class="form-label">Số điện thoại</label>
                 <input 
-                  v-model="form.DienThoai" 
+                  v-model="form.SoDienThoai" 
                   type="tel"
                   class="form-control"
                   placeholder="0123456789"
@@ -172,11 +167,11 @@
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelUpdate">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 <font-awesome-icon icon="xmark" class="me-1" />
                 Hủy
               </button>
-              <button type="submit" class="btn btn-gradient-primary">
+              <button type="submit" class="btn btn-primary">
                 <font-awesome-icon icon="floppy-disk" class="me-1" />
                 Lưu thay đổi
               </button>
@@ -213,7 +208,7 @@
                   type="password" 
                   class="form-control" 
                   placeholder="Nhập mật khẩu cũ"
-                  required 
+                  
                   minlength="6"
                 />
               </div>
@@ -227,7 +222,7 @@
                   type="password" 
                   class="form-control"
                   placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" 
-                  required 
+                  
                   minlength="6"
                 />
               </div>
@@ -241,7 +236,7 @@
                   type="password" 
                   class="form-control"
                   placeholder="Nhập lại mật khẩu mới"
-                  required 
+                  
                   minlength="6"
                 />
                 <div v-if="confirmPass && newPass !== confirmPass" class="text-danger small mt-1">
@@ -279,19 +274,18 @@
 <script setup>
 import { reactive, ref, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
-import { useAuthStore } from "../stores/auth";
-import http from "../api/axios";
-import { useToast } from "../composables/useToast";
+import { useAuthStore } from "../../stores/auth";
+import http from "../../api/axios";
+import { useToast } from "../../composables/useToast";
 
 const auth = useAuthStore();
 const toast = useToast();
 
 // ---------- DATA ----------
 const form = reactive({
-  HoLot: "",
-  Ten: "",
-  Email: "",
-  DienThoai: "",
+  HoTenNV: "",
+  ChucVu: "",
+  SoDienThoai: "",
   DiaChi: "",
 });
 
@@ -307,8 +301,13 @@ const passwordRef = ref(null);
 
 // ---------- LOAD PROFILE ----------
 onMounted(async () => {
-  await auth.loadProfile();
-  Object.assign(form, auth.reader);
+  await auth.fetchMe();
+  Object.assign(form, {
+    HoTenNV: auth.user.HoTenNV,
+    ChucVu: auth.user.ChucVu || "",
+    SoDienThoai: auth.user.SoDienThoai || "",
+    DiaChi: auth.user.DiaChi || "",
+  });
 
   updateModal = new bootstrap.Modal(updateRef.value);
   passwordModal = new bootstrap.Modal(passwordRef.value);
@@ -316,12 +315,13 @@ onMounted(async () => {
 
 // ---------- OPEN MODALS ----------
 const openUpdate = () => {
-  Object.assign(form, auth.reader);
+  Object.assign(form, {
+    HoTenNV: auth.user.HoTenNV,
+    ChucVu: auth.user.ChucVu || "",
+    SoDienThoai: auth.user.SoDienThoai || "",
+    DiaChi: auth.user.DiaChi || "",
+  });
   updateModal.show();
-};
-
-const cancelUpdate = () => {
-  // Không làm gì, chỉ đóng modal
 };
 
 const openPassword = () => {
@@ -335,11 +335,10 @@ const openPassword = () => {
 const saveProfile = async () => {
   // Kiểm tra xem có thay đổi gì không
   const hasChanges = 
-    form.HoLot !== auth.reader.HoLot ||
-    form.Ten !== auth.reader.Ten ||
-    form.Email !== auth.reader.Email ||
-    form.DienThoai !== auth.reader.DienThoai ||
-    form.DiaChi !== auth.reader.DiaChi;
+    form.HoTenNV !== auth.user.HoTenNV ||
+    form.ChucVu !== (auth.user.ChucVu || "") ||
+    form.SoDienThoai !== (auth.user.SoDienThoai || "") ||
+    form.DiaChi !== (auth.user.DiaChi || "");
 
   if (!hasChanges) {
     updateModal.hide();
@@ -347,8 +346,8 @@ const saveProfile = async () => {
   }
 
   try {
-    await http.put("/me", form);
-    await auth.loadProfile();
+    await http.put("/employee/me", form);
+    await auth.fetchMe();
     updateModal.hide();
     toast.success('Cập nhật thông tin thành công!');
   } catch (err) {
@@ -364,7 +363,7 @@ const changePassword = async () => {
   }
   
   try {
-    await http.put("/change-password", {
+    await http.put("/employee/change-password", {
       oldPass: oldPass.value,
       newPass: newPass.value,
     });
@@ -381,7 +380,7 @@ const changePassword = async () => {
   background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
   padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3);
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.3);
   color: white;
 }
 
@@ -410,42 +409,5 @@ const changePassword = async () => {
   font-size: 0.95rem;
   opacity: 0.9;
   margin: 0;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  border: none;
-  box-shadow: 0 4px 15px 0 rgba(25, 118, 210, 0.4);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
-  box-shadow: 0 6px 20px 0 rgba(25, 118, 210, 0.6);
-}
-
-.btn-outline-danger {
-  border: 2px solid #dc3545;
-}
-
-.btn-outline-danger:hover {
-  background: #dc3545;
-  border-color: #dc3545;
-}
-
-.modal-header-gradient {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-}
-
-.btn-gradient-primary {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  border: none;
-  color: white;
-  box-shadow: 0 4px 15px 0 rgba(25, 118, 210, 0.4);
-}
-
-.btn-gradient-primary:hover {
-  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
-  box-shadow: 0 6px 20px 0 rgba(25, 118, 210, 0.6);
-  color: white;
 }
 </style>
