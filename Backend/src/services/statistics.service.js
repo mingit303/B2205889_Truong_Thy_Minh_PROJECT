@@ -292,6 +292,22 @@ exports.getDamagedAndLostBooks = async () => {
 
   const booksArray = Array.from(bookStats.values());
 
+  // Sắp xếp theo ưu tiên: mất sách trước → hư hỏng nặng → hư hỏng nhẹ
+  booksArray.sort((a, b) => {
+    // Ưu tiên 1: Số lượng mất sách (giảm dần)
+    if (b.lostCount !== a.lostCount) {
+      return b.lostCount - a.lostCount;
+    }
+    
+    // Ưu tiên 2: Số lượng hư hỏng nặng (giảm dần)
+    if (b.heavyCount !== a.heavyCount) {
+      return b.heavyCount - a.heavyCount;
+    }
+    
+    // Ưu tiên 3: Số lượng hư hỏng nhẹ (giảm dần)
+    return b.lightCount - a.lightCount;
+  });
+
   return {
     books: booksArray,
     total: records.length,

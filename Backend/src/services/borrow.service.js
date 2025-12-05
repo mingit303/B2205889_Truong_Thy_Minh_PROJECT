@@ -14,7 +14,7 @@ const getCfg = async (key, def = 0) => {
 
 // Helper tính tiền phạt trễ hạn - mức cố định
 const calculateLateFee = async (daysLate) => {
-  const baseFine = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
+  const baseFine = await getCfg("TIEN_PHAT_MOI_NGAY", 15000);
   return daysLate * baseFine;
 };
 
@@ -125,7 +125,7 @@ exports.createBorrowRecord = async (data, employeeId) => {
   });
 
   if (currentBorrows >= maxBorrow) {
-    throw new Error(`Đã đạt số sách mượn tối đa (${maxBorrow})`);
+    throw new Error(`Đã đạt số sách mượn tối đa \${maxBorrow} 5 quyển`);
   }
 
   const now = new Date();
@@ -225,7 +225,7 @@ exports.extendBorrow = async (id) => {
   const extendDays = await getCfg("SO_NGAY_GIA_HAN", 7);
 
   if (r.SoLanGiaHan >= maxExtend) {
-    throw new Error(`Đã đạt số lần gia hạn tối đa (${maxExtend})`);
+    throw new Error(`Đã đạt số lần gia hạn tối đa ${maxExtend} lần`);
   }
 
   // Gia hạn: chỉ tăng số lần gia hạn và cập nhật hạn trả
@@ -240,6 +240,10 @@ exports.extendBorrow = async (id) => {
   r.HanTra = newDeadline;
 
   await r.save();
+  
+  // Emit socket event để cập nhật realtime
+  emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, r);
+  
   return r;
 };
 

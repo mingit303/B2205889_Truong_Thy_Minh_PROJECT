@@ -527,7 +527,7 @@ exports.printFineTicket = async (req, res) => {
     let daysLate = 0;
     let lateFine = 0;
     let damageFine = 0;
-    const fineRate = 5000; // Mức phạt cố định
+    const fineRate = 15000; // Mức phạt cố định
     
     // Tính số ngày trễ (giống service: so sánh ngày không tính giờ)
     if (br.NgayTra && br.HanTra) {
