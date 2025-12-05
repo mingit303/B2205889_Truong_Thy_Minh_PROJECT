@@ -407,7 +407,7 @@ const submitForm = async () => {
 const toggleStatus = async (nv) => {
   try {
     await store.toggleStatus(nv.MSNV);
-    toast.success('Đã đổi trạng thái');
+    toast.success('Đã đổi trạng thái tài khoản');
   } catch (err) {
     toast.error(err.response?.data?.message || 'Lỗi đổi trạng thái');
   }

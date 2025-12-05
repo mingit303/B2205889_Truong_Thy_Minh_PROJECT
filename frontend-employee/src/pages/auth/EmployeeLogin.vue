@@ -24,9 +24,9 @@
       />
     </div>
 
-    <div v-if="auth.error" class="alert alert-danger py-2 small">
+    <!-- <div v-if="auth.error" class="alert alert-danger py-2 small">
       {{ auth.error }}
-    </div>
+    </div> -->
 
     <button class="btn btn-primary w-100" :disabled="auth.loading">
       <!-- <span v-if="auth.loading" class="spinner-border spinner-border-sm me-2" /> -->

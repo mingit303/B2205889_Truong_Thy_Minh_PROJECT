@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import api from "../api/axios";
+import { useToast } from "../composables/useToast";
+const toast = useToast();
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -12,7 +14,8 @@ export const useAuthStore = defineStore("auth", {
   getters: {
     isAuthenticated: (state) => !!state.token,
     isSuperAdmin: (state) => state.user?.VaiTro === "SUPERADMIN",
-    isAdmin:   (state) => state.user?.VaiTro === "ADMIN" || state.user?.VaiTro === "SUPERADMIN",
+    isAdmin: (state) =>
+      state.user?.VaiTro === "ADMIN" || state.user?.VaiTro === "SUPERADMIN",
   },
 
   actions: {
@@ -29,8 +32,11 @@ export const useAuthStore = defineStore("auth", {
 
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
+
+        // toast.success("Đăng nhập thành công!");
       } catch (err) {
         this.error = err.response?.data?.message || "Đăng nhập thất bại";
+        toast.error(this.error);
         throw err;
       } finally {
         this.loading = false;
@@ -39,20 +45,27 @@ export const useAuthStore = defineStore("auth", {
 
     async fetchMe() {
       if (!this.token) return;
+
       try {
         const res = await api.get("/auth/me");
         this.user = res.data.data;
+
         localStorage.setItem("user", JSON.stringify(this.user));
+        // toast.success("Lấy thông tin người dùng thành công!");
       } catch (err) {
         console.error("Lỗi lấy thông tin user:", err);
+        toast.error("Không thể lấy thông tin người dùng.");
       }
     },
 
     logout() {
       this.token = "";
       this.user = null;
+
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+
+      // toast.success("Đã đăng xuất!");
     },
   },
 });
