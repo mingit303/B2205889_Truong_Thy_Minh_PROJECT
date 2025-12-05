@@ -233,12 +233,20 @@ exports.getStatusDistribution = async ({ month, year }) => {
 };
 
 /* =========================
-   6) SÁCH HƯ HỎNG / MẤT
+   6) SÁCH HƯ HọNG / MẤT
    ========================= */
-exports.getDamagedAndLostBooks = async () => {
-  // Lấy tất cả phiếu mượn có trạng thái Hư hỏng hoặc Mất sách
+exports.getDamagedAndLostBooks = async (query = {}) => {
+  const month = Number(query.month) || new Date().getMonth() + 1;
+  const year = Number(query.year) || new Date().getFullYear();
+
+  // Tạo khoảng thời gian cho tháng/năm được chọn
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+  // Lấy tất cả phiếu mượn có trạng thái Hư hỏng hoặc Mất sách trong tháng/năm
   const records = await BorrowRecord.find({
-    TrangThai: { $in: ["Hư hỏng", "Mất sách"] }
+    TrangThai: { $in: ["Hư hỏng", "Mất sách"] },
+    NgayTra: { $gte: startDate, $lte: endDate }
   }).sort({ createdAt: -1 });
 
   const bookCodes = [...new Set(records.map(r => r.MaSach))];
@@ -309,6 +317,8 @@ exports.getDamagedAndLostBooks = async () => {
   });
 
   return {
+    month,
+    year,
     books: booksArray,
     total: records.length,
     totalBooks: booksArray.length,

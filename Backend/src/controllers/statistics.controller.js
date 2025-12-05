@@ -67,7 +67,7 @@ exports.getStatusDistribution = async (req, res) => {
 
 exports.getDamagedAndLostBooks = async (req, res) => {
   try {
-    const data = await service.getDamagedAndLostBooks();
+    const data = await service.getDamagedAndLostBooks(req.query);
     return success(res, data, "Lấy danh sách sách hư hỏng/mất thành công");
   } catch (err) {
     console.error(err);

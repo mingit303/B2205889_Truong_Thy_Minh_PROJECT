@@ -1142,7 +1142,7 @@ exports.printFinesStatistics = async (req, res) => {
 ========================================================== */
 exports.printDamagedAndLostBooks = async (req, res) => {
   try {
-    const data = await statisticsService.getDamagedAndLostBooks();
+    const data = await statisticsService.getDamagedAndLostBooks(req.query);
 
     const doc = new PDFDocument({ size: "A4", margin: 40 });
     res.setHeader("Content-Type", "application/pdf");
@@ -1154,7 +1154,11 @@ exports.printDamagedAndLostBooks = async (req, res) => {
       doc.moveDown(4);
     }
     doc.font(fontBold).fontSize(18).text("THỐNG KÊ SÁCH HƯ HỎNG VÀ MẤT", { align: "center" });
-    doc.font(fontRegular).fontSize(13).text(`Tổng số sách: ${data.books.length}`, { align: "center" });
+    doc.font(fontRegular).fontSize(12).text(
+      `Tháng ${data.month}/${data.year}`,
+      { align: "center" }
+    );
+    doc.fontSize(11).text(`Tổng số sách: ${data.books.length}`, { align: "center" });
     line(doc);
 
     /* TABLE */

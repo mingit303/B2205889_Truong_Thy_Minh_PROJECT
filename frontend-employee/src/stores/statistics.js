@@ -33,6 +33,8 @@ export const useStatisticsStore = defineStore("statistics", {
     fineRecords: [],
 
     // damaged and lost books
+    damagedLostMonth: new Date().getMonth() + 1,
+    damagedLostYear: new Date().getFullYear(),
     damagedLost: {
       books: [],
       total: 0,
@@ -133,8 +135,18 @@ export const useStatisticsStore = defineStore("statistics", {
     async loadDamagedAndLostBooks() {
       this.loading.damagedLost = true;
       try {
-        const res = await statisticsApi.getDamagedAndLostBooks();
-        this.damagedLost = res.data.data;
+        const res = await statisticsApi.getDamagedAndLostBooks({
+          month: this.damagedLostMonth,
+          year: this.damagedLostYear,
+        });
+        const d = res.data.data;
+        this.damagedLostMonth = d.month;
+        this.damagedLostYear = d.year;
+        this.damagedLost = {
+          books: d.books,
+          total: d.total,
+          totalBooks: d.totalBooks,
+        };
       } finally {
         this.loading.damagedLost = false;
       }

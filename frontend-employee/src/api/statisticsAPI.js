@@ -26,7 +26,7 @@ export const statisticsApi = {
     return api.get("/statistics/fines", { params });
   },
 
-  getDamagedAndLostBooks() {
-    return api.get("/statistics/damaged-lost-books");
+  getDamagedAndLostBooks(params) {
+    return api.get("/statistics/damaged-lost-books", { params });
   },
 };

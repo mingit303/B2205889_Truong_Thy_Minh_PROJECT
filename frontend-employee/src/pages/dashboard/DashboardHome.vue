@@ -326,9 +326,30 @@
     <div class="card shadow-sm border-0 mt-4">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <span class="fw-bold">Thống kê sách hư hỏng và mất</span>
-        <button class="btn btn-sm btn-outline-danger" @click="exportDamagedLostPDF">
-          <font-awesome-icon icon="file-pdf" />
-        </button>
+        
+        <div class="d-flex align-items-center gap-2 small">
+          <button class="btn btn-sm btn-outline-danger" @click="exportDamagedLostPDF">
+            <font-awesome-icon icon="file-pdf" />
+          </button>
+          <label class="mb-0">Tháng</label>
+          <select
+            class="form-select form-select-sm"
+            style="width: 90px"
+            v-model.number="store.damagedLostMonth"
+            @change="store.loadDamagedAndLostBooks()"
+          >
+            <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
+          </select>
+
+          <label class="mb-0">Năm</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            style="width: 90px"
+            v-model.number="store.damagedLostYear"
+            @change="store.loadDamagedAndLostBooks()"
+          />
+        </div>
       </div>
 
       <div class="card-body p-0">
@@ -586,7 +607,9 @@ const exportFinesPDF = () => {
 };
 
 const exportDamagedLostPDF = () => {
-  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/damaged-lost-books`;
+  const month = store.damagedLostMonth;
+  const year = store.damagedLostYear;
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/damaged-lost-books?month=${month}&year=${year}`;
   window.open(url, "_blank");
 };
 
