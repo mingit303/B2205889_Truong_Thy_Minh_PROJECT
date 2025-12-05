@@ -27,5 +27,10 @@ export const useHistoryStore = defineStore("history", {
       this.total = res.data.pagination?.total || 0;
       this.loading = false;
     },
+
+    async extendBorrow(id) {
+      await http.post(`/history/${id}/extend`);
+      await this.fetch();
+    },
   },
 });

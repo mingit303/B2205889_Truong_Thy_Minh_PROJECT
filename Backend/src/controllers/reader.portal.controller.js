@@ -2,6 +2,7 @@ const Reader = require("../models/Reader");
 const Book = require("../models/Book");
 const BorrowRecord = require("../models/BorrowRecord");
 const BorrowRequest = require("../models/BorrowRequest");
+const borrowService = require("../services/borrow.service");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { success, error, paginate } = require("../utils/response");
@@ -328,6 +329,36 @@ exports.getMyBorrowHistory = async (req, res) => {
 
     return paginate(res, list, page, limit, total, "Lấy lịch sử mượn sách thành công");
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ===============================
+// GIA HẠN MƯỢN SÁCH
+// ===============================
+exports.extendMyBorrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const readerCode = req.user.id;
+
+    // Kiểm tra phiếu mượn có thuộc về độc giả này không
+    const record = await BorrowRecord.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Không tìm thấy phiếu mượn" });
+    }
+
+    if (record.MaDocGia !== readerCode) {
+      return res.status(403).json({ message: "Bạn không có quyền gia hạn phiếu mượn này" });
+    }
+
+    // Gọi service để gia hạn
+    const updated = await borrowService.extendBorrow(id);
+
+    res.json({
+      message: "Gia hạn thành công",
+      data: updated,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

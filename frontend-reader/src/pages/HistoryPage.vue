@@ -140,6 +140,14 @@
                 </span>
               </div>
 
+              <!-- NÚt gia hạn (nếu đang mượn hoặc trễ hạn) -->
+              <div v-if="canExtend(h)" class="mb-2">
+                <button class="btn btn-sm btn-outline-primary" @click="handleExtend(h)">
+                  <font-awesome-icon icon="clock-rotate-left" class="me-1" />
+                  Gia hạn mượn
+                </button>
+              </div>
+
               <!-- Tiền phạt (nếu có) -->
               <div v-if="h.TienPhat && h.TienPhat > 0" class="mb-2">
                 <button class="btn btn-sm fine-btn" @click="showFineDetail(h)">
@@ -258,10 +266,14 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { Modal } from "bootstrap";
 import { useHistoryStore } from "../stores/history";
 import { useSocket, SOCKET_EVENTS } from "../composables/useSocket";
+import { useToast } from "../composables/useToast";
+import { useConfirm } from "../composables/useConfirm";
 import Pagination from "../components/Pagination.vue";
 
 const store = useHistoryStore();
 const { connect, disconnect, on, off } = useSocket();
+const toast = useToast();
+const { confirm } = useConfirm();
 const selectedRecord = ref(null);
 let fineModal = null;
 
@@ -348,6 +360,25 @@ const getDamageFine = (record) => {
   const totalFine = record.TienPhat || 0;
   const damageFine = totalFine - lateFine;
   return damageFine > 0 ? damageFine : 0;
+};
+
+/* KIỂM TRA CÓ THỂ GIA HẠN KHÔNG */
+const canExtend = (record) => {
+  // Chỉ cho phép gia hạn khi đang đã mượn hoặc trễ hạn, chưa trả sách
+  return ['\u0110\u00e3 m\u01b0\u1ee3n', 'Tr\u1ec5 h\u1ea1n'].includes(record.TrangThai) && !record.NgayTra;
+};
+
+/* XỬ LÝ GIA HẠN */
+const handleExtend = async (record) => {
+  try {
+    await confirm('B\u1ea1n c\u00f3 ch\u1eafc mu\u1ed1n gia h\u1ea1n phi\u1ebfu m\u01b0\u1ee3n n\u00e0y kh\u00f4ng?');
+    await store.extendBorrow(record._id);
+    toast.success('\u0110\u00e3 gia h\u1ea1n th\u00e0nh c\u00f4ng!');
+  } catch (err) {
+    if (err && err.response) {
+      toast.error(err.response?.data?.message || 'L\u1ed7i gia h\u1ea1n');
+    }
+  }
 };
 
 /* NHÃN CHO KHOẢN PHẠT HƯ HỌNG/MẤT */

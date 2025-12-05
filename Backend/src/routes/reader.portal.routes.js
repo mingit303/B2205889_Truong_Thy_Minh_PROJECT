@@ -30,5 +30,6 @@ router.get("/request/my", readerAuth, ctrl.getMyRequests);
 
 // HISTORY
 router.get("/history", readerAuth, ctrl.getMyBorrowHistory);
+router.post("/history/:id/extend", readerAuth, ctrl.extendMyBorrow);
 
 module.exports = router;
