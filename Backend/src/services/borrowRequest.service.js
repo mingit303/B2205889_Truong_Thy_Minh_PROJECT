@@ -77,6 +77,21 @@ async getAll(query) {
       throw new Error("Độc giả có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi duyệt yêu cầu mượn.");
     }
 
+    // Kiểm tra xem có sách nào trong yêu cầu đã được mượn chưa trả không
+    for (const MaSach of req.Sach) {
+      const alreadyBorrowed = await BorrowRecord.findOne({
+        MaDocGia: req.MaDocGia,
+        MaSach,
+        NgayTra: { $exists: false },
+        TrangThai: { $in: ["Đã mượn", "Trễ hạn", "Hư hỏng", "Mất sách"] },
+      });
+      if (alreadyBorrowed) {
+        const book = await Book.findOne({ MaSach }).lean();
+        const bookName = book ? book.TenSach : MaSach;
+        throw new Error(`Độc giả đã mượn sách "${bookName}" (${MaSach}) và chưa trả. Không thể duyệt yêu cầu này.`);
+      }
+    }
+
     // Lấy cấu hình
     const maxBorrow = await getCfg("SO_SACH_MUON_TOI_DA", 5);
     const borrowDays = await getCfg("SO_NGAY_MUON", 30);

@@ -119,6 +119,19 @@ exports.createBorrowRecord = async (data, employeeId) => {
     throw new Error("Độc giả có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi mượn sách mới.");
   }
 
+  // Kiểm tra xem độc giả đã mượn sách này chưa trả hay chưa
+  const alreadyBorrowed = await BorrowRecord.findOne({
+    MaDocGia,
+    MaSach,
+    NgayTra: { $exists: false },
+    TrangThai: { $in: ["Đã mượn", "Trễ hạn", "Hư hỏng", "Mất sách"] },
+  });
+  if (alreadyBorrowed) {
+    const book = await Book.findOne({ MaSach }).lean();
+    const bookName = book ? book.TenSach : MaSach;
+    throw new Error(`Độc giả đã mượn sách "${bookName}" (${MaSach}) và chưa trả. Không thể mượn lại cuốn sách này.`);
+  }
+
   const book = await Book.findOne({ MaSach });
   if (!book) throw new Error(`Không tìm thấy sách: ${MaSach}`);
 

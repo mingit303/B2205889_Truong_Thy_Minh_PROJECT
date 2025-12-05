@@ -271,6 +271,24 @@ exports.createBorrowRequest = async (req, res) => {
       });
     }
 
+    // Kiểm tra xem có sách nào trong giỏ đã được mượn chưa trả không
+    const requestedBooks = req.body.Sach || [];
+    for (const MaSach of requestedBooks) {
+      const alreadyBorrowed = await BorrowRecord.findOne({
+        MaDocGia: req.user.id,
+        MaSach,
+        NgayTra: { $exists: false },
+        TrangThai: { $in: ["Đã mượn", "Trễ hạn", "Hư hỏng", "Mất sách"] },
+      });
+      if (alreadyBorrowed) {
+        const book = await Book.findOne({ MaSach }).lean();
+        const bookName = book ? book.TenSach : MaSach;
+        return res.status(400).json({
+          message: `Bạn đã mượn sách "${bookName}" (${MaSach}) và chưa trả. Không thể mượn lại cuốn sách này.`,
+        });
+      }
+    }
+
     const r = await BorrowRequest.create({
       MaDocGia: req.user.id,
       Sach: req.body.Sach,
