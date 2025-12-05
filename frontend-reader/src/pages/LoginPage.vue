@@ -10,12 +10,7 @@
       <p class="text-muted mb-0">Đăng nhập</p>
     </div>
 
-    <div v-if="errorMsg" class="alert alert-danger py-2 small">
-      {{ errorMsg }}
-    </div>
-
     <form @submit.prevent="login">
-
       <div class="mb-3">
         <label class="form-label">Mã độc giả / Email</label>
         <input
@@ -40,10 +35,7 @@
         />
       </div>
 
-      <button class="btn btn-primary w-100 py-2">
-        Đăng nhập
-      </button>
-
+      <button class="btn btn-primary w-100 py-2">Đăng nhập</button>
     </form>
 
     <div class="text-center mt-3">
@@ -55,7 +47,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
 import { useAuthStore } from "../stores/auth";
 import { useRouter } from "vue-router";
 import { useToast } from "../composables/useToast";
@@ -65,20 +57,22 @@ const form = reactive({
   MatKhau: "",
 });
 
-const errorMsg = ref("");
 const auth = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
 const login = async () => {
-  errorMsg.value = "";
-
   try {
     await auth.login(form);
-    toast.success(`Chào mừng ${auth.reader?.HoLot} ${auth.reader?.Ten || 'bạn'}!`, "Đăng nhập thành công");
+    toast.success(
+      `Chào mừng ${auth.reader?.HoLot} ${auth.reader?.Ten || "bạn"}!`,
+      "Đăng nhập thành công"
+    );
     router.push("/");
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || "Sai thông tin đăng nhập!";
+    const msg = err.response?.data?.message || "Sai thông tin đăng nhập!";
+    toast.error(msg, "Đăng nhập thất bại");
+    form.MatKhau = "";
   }
 };
 </script>

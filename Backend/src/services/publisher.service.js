@@ -25,6 +25,10 @@ class PublisherService {
   async createPublisher(data) {
     const { MaNXB, TenNXB, DiaChi } = data;
 
+    const existingPublisher = await Publisher.findOne({ MaNXB });
+            if (existingPublisher) {
+              throw new Error("Mã NXB đã tồn tại");
+            }
     if (!MaNXB || !TenNXB) {
       throw new Error("Mã NXB và tên NXB là bắt buộc");
     }

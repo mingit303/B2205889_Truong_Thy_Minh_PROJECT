@@ -88,22 +88,30 @@
     </div>
 
     <!-- EMPTY STATE -->
+    <!-- EMPTY STATE -->
     <div v-if="books.length === 0" class="empty-state-wrapper">
       <div class="empty-state-icon">
         <font-awesome-icon icon="book" class="book-icon" />
       </div>
-      
-      <h4 class="mt-4 mb-2 fw-bold">Không tìm thấy sách nào</h4>
-      <p class="text-muted mb-4">
-        <span v-if="hasActiveFilters">với bộ lọc hiện tại. Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</span>
-        <span v-else>Hiện tại chưa có sách nào trong hệ thống.</span>
+
+      <h4 class="mt-4 mb-2 fw-bold">
+        {{ emptyMessage }}
+      </h4>
+
+      <p class="text-muted mb-4" v-if="noBooksForFilter">
+        Thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.
       </p>
-      
-      <button v-if="hasActiveFilters" class="btn btn-primary px-4" @click="clearFilters">
+
+      <button 
+        v-if="noBooksForFilter"
+        class="btn btn-primary px-4"
+        @click="clearFilters"
+      >
         <font-awesome-icon icon="rotate-left" class="me-2" />
         Xóa tất cả bộ lọc
       </button>
     </div>
+
 
     <!-- BOOK LIST -->
     <div class="row g-4" v-else>
@@ -281,6 +289,24 @@ const clearFilters = () => {
 
 const hasActiveFilters = computed(() => {
   return keyword.value || status.value || authorId.value || publisherId.value || categoryId.value;
+});
+const noBooksInSystem = computed(() => {
+  return books.value.length === 0 && !hasActiveFilters.value;
+});
+
+const noBooksForFilter = computed(() => {
+  return books.value.length === 0 && hasActiveFilters.value;
+});
+const emptyMessage = computed(() => {
+  if (!hasActiveFilters.value) return "Hiện tại chưa có sách nào trong hệ thống.";
+
+  if (status.value === "out") return "Không có sách nào đang hết hàng.";
+  if (status.value === "available") return "Không có sách nào còn hàng.";
+  if (authorId.value) return "Không tìm thấy sách của tác giả này.";
+  if (publisherId.value) return "Không tìm thấy sách của nhà xuất bản này.";
+  if (categoryId.value) return "Không tìm thấy sách thuộc thể loại này.";
+
+  return "Không tìm thấy sách nào với bộ lọc hiện tại.";
 });
 
 const cartCount = computed(() => cartStore.count);

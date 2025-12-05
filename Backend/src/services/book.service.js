@@ -1,5 +1,5 @@
 const Book = require("../models/Book");
-
+const { ObjectId } = require("mongoose").Types;
 class BookService {
   async getBooks(queryParams) {
     const {
@@ -30,15 +30,18 @@ class BookService {
     }
 
     // FILTER theo id (FE đang gửi _id)
-    if (category) {
-      query.MaTheLoai = category;
-    }
-    if (publisher) {
-      query.MaNXB = publisher;
-    }
-    if (author) {
-      query.MaTacGia = author;
-    }
+if (category) {
+  query.MaTheLoai = new ObjectId(category);
+}
+
+if (publisher) {
+  query.MaNXB = new ObjectId(publisher);
+}
+
+if (author) {
+  query.MaTacGia = new ObjectId(author);
+}
+
 
     // PRICE RANGE
     if (minPrice || maxPrice) {

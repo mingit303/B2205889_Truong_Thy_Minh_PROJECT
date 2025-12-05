@@ -21,6 +21,10 @@ class AuthorService {
 
   async createAuthor(data) {
     const { MaTacGia, TenTacGia } = data;
+    const existingAuthor = await Author.findOne({ MaTacGia });
+        if (existingAuthor) {
+          throw new Error("Mã tác giả đã tồn tại");
+        }
 
     if (!MaTacGia || !TenTacGia) {
       throw new Error("Mã tác giả và tên tác giả là bắt buộc");

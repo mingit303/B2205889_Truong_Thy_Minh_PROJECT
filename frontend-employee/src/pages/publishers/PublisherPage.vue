@@ -22,14 +22,23 @@
     <div class="card mb-3">
       <div class="card-body">
         <div class="row align-items-end">
-          <div class="col-md-4">
+          <div class="col-md-4 position-relative">
             <label class="form-label">Tìm kiếm</label>
             <input
-              class="form-control"
+              class="form-control pe-5"
               v-model="store.search"
               @input="handleSearch"
               placeholder="Mã hoặc tên NXB..."
             />
+
+            <button
+              v-if="store.search"
+              class="btn btn-sm btn-light position-absolute"
+              style="right: 20px; bottom: 5px"
+              @click="clearSearch"
+            >
+              <font-awesome-icon icon="xmark" />
+            </button>
           </div>
         </div>
       </div>
@@ -41,13 +50,14 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th style="width:60px" class="text-center">#</th>
+              <th class="text-center" style="width:60px">#</th>
               <th>Mã NXB</th>
               <th>Tên NXB</th>
               <th>Địa chỉ</th>
               <th class="text-center" style="width:150px">Thao tác</th>
             </tr>
           </thead>
+
           <tbody>
             <tr v-if="store.loading">
               <td colspan="5" class="text-center py-3">Đang tải dữ liệu...</td>
@@ -75,7 +85,6 @@
         </table>
       </div>
 
-      <!-- PAGINATION -->
       <div class="card-footer">
         <Pagination
           :page="store.page"
@@ -93,54 +102,46 @@
           <form @submit.prevent="submitForm">
             <div class="modal-header">
               <h5 class="modal-title">{{ editing ? "Cập nhật" : "Thêm" }} NXB</h5>
-              <button class="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Mã NXB *</label>
-                <input 
-                  v-model="form.MaNXB" 
-                  type="text"
-                  class="form-control" 
-                  :disabled="editing" 
-                  
-                  minlength="2"
-                  maxlength="20"
-                />
-              </div>
+              <label class="form-label">Mã NXB *</label>
+              <input 
+                v-model="form.MaNXB" 
+                type="text"
+                class="form-control"
+                :disabled="editing"
+              />
 
-              <div class="mb-3">
-                <label class="form-label">Tên NXB *</label>
-                <input 
-                  v-model="form.TenNXB" 
-                  type="text"
-                  class="form-control" 
-                  
-                  minlength="2"
-                  maxlength="100"
-                />
-              </div>
+              <label class="form-label mt-3">Tên NXB *</label>
+              <input 
+                v-model="form.TenNXB" 
+                type="text"
+                class="form-control"
+              />
 
-              <div class="mb-0">
-                <label class="form-label">Địa chỉ</label>
-                <textarea 
-                  v-model="form.DiaChi" 
-                  class="form-control" 
-                  rows="2"
-                  maxlength="200"
-                ></textarea>
-              </div>
+              <label class="form-label mt-3">Địa chỉ</label>
+              <textarea 
+                v-model="form.DiaChi" 
+                class="form-control"
+                rows="2"
+              ></textarea>
             </div>
 
             <div class="modal-footer">
-              <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-              <button class="btn btn-primary">{{ editing ? "Lưu" : "Thêm" }}</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Đóng
+              </button>
+              <button type="submit" class="btn btn-primary">
+                {{ editing ? "Lưu" : "Thêm" }}
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -157,6 +158,7 @@ const store = usePublisherStore();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { connect, disconnect, on, off } = useSocket();
+
 const modalRef = ref(null);
 let modal = null;
 
@@ -168,14 +170,14 @@ const form = reactive({
 
 const editing = ref(false);
 const originalData = ref(null);
+const isSubmitting = ref(false);
 
 onMounted(() => {
   store.fetch();
   modal = new bootstrap.Modal(modalRef.value);
-  
-  // Reset form khi đóng modal
-  modalRef.value.addEventListener('hidden.bs.modal', resetForm);
-  
+
+  modalRef.value.addEventListener("hide.bs.modal", resetForm);
+
   connect();
   on(SOCKET_EVENTS.PUBLISHER_ADDED, () => store.fetch());
   on(SOCKET_EVENTS.PUBLISHER_UPDATED, () => store.fetch());
@@ -195,29 +197,36 @@ const handleSearch = () => {
 };
 
 const changePage = (p) => {
-  const maxPage = Math.ceil(store.total / store.limit) || 1;
-  if (p < 1 || p > maxPage) return;
+  const max = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > max) return;
   store.page = p;
   store.fetch();
 };
 
 const openCreate = () => {
   editing.value = false;
+  isSubmitting.value = false;
+
   form.MaNXB = "";
   form.TenNXB = "";
   form.DiaChi = "";
+
   modal.show();
 };
 
 const openEdit = (p) => {
   editing.value = true;
+  isSubmitting.value = false;
+
   form.MaNXB = p.MaNXB;
   form.TenNXB = p.TenNXB;
   form.DiaChi = p.DiaChi || "";
+
   originalData.value = {
     TenNXB: p.TenNXB,
     DiaChi: p.DiaChi || ""
   };
+
   modal.show();
 };
 
@@ -227,34 +236,37 @@ const resetForm = () => {
   form.DiaChi = "";
   editing.value = false;
   originalData.value = null;
+  isSubmitting.value = false;
 };
 
 const submitForm = async () => {
+  isSubmitting.value = true;
+
   if (editing.value && originalData.value) {
-    const hasChanges = 
+    const changed =
       form.TenNXB !== originalData.value.TenNXB ||
       form.DiaChi !== originalData.value.DiaChi;
-    if (!hasChanges) {
+
+    if (!changed) {
       modal.hide();
       return;
     }
   }
 
-  // Kiểm tra trùng tên NXB khi thêm mới
   if (!editing.value) {
-    const existsCode = store.items.some(p => 
-      p.MaNXB.toLowerCase().trim() === form.MaNXB.toLowerCase().trim()
+    const dupCode = store.items.some(
+      n => n.MaNXB.toLowerCase().trim() === form.MaNXB.toLowerCase().trim()
     );
-    if (existsCode) {
-      toast.error('Mã nhà xuất bản đã tồn tại!');
+    if (dupCode) {
+      toast.error("Mã NXB đã tồn tại!");
       return;
     }
-    
-    const existsName = store.items.some(p => 
-      p.TenNXB.toLowerCase().trim() === form.TenNXB.toLowerCase().trim()
+
+    const dupName = store.items.some(
+      n => n.TenNXB.toLowerCase().trim() === form.TenNXB.toLowerCase().trim()
     );
-    if (existsName) {
-      toast.error('Tên nhà xuất bản đã tồn tại!');
+    if (dupName) {
+      toast.error("Tên NXB đã tồn tại!");
       return;
     }
   }
@@ -262,14 +274,16 @@ const submitForm = async () => {
   try {
     if (editing.value) {
       await store.update(form.MaNXB, form);
-      toast.success('Đã cập nhật nhà xuất bản');
+      toast.success("Đã cập nhật NXB");
     } else {
       await store.create(form);
-      toast.success('Đã thêm nhà xuất bản mới');
+      toast.success("Đã thêm NXB mới");
     }
+
     modal.hide();
+
   } catch (err) {
-    toast.error(err.response?.data?.message || 'Lỗi lưu nhà xuất bản');
+    toast.error(err.response?.data?.message || "Lỗi lưu NXB");
   }
 };
 
@@ -277,14 +291,20 @@ const remove = async (p) => {
   try {
     await confirm(`Xóa NXB "${p.TenNXB}"?`);
     await store.remove(p.MaNXB);
-    toast.success('Đã xóa nhà xuất bản');
+    toast.success("Đã xóa NXB");
   } catch (err) {
-    if (err && err.response) {
-      toast.error(err.response?.data?.message || 'Lỗi xóa nhà xuất bản');
-    }
+    toast.error(err.response?.data?.message || "Lỗi xóa NXB");
   }
 };
+
+const clearSearch = () => {
+  store.search = "";
+  store.page = 1;
+  store.fetch();
+};
+
 </script>
+
 
 <style scoped>
 .page-header {

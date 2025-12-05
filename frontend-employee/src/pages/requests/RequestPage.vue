@@ -45,7 +45,6 @@
           <tbody>
             <tr v-for="(r, idx) in store.items" :key="r._id">
               <td>{{ (store.page - 1) * store.limit + idx + 1 }}</td>
-
               <td class="fw-bold">{{ r.MaDocGia }}</td>
 
               <!-- BOOK LIST -->
@@ -74,7 +73,7 @@
                     <font-awesome-icon icon="check" />
                   </button>
 
-                  <button class="btn btn-sm btn-danger" @click="reject(r._id)">
+                  <button class="btn btn-sm btn-danger" @click="openReject(r._id)">
                     <font-awesome-icon icon="xmark" />
                   </button>
                 </template>
@@ -130,8 +129,41 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Đóng
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Reject Reason -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" ref="rejectModalRef">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <!-- <font-awesome-icon icon="infor" class="me-2" /> -->
+              Lý do từ chối
+            </h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <label class="form-label">Nhập lý do *</label>
+            <textarea class="form-control" rows="3" v-model="rejectReason"></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Đóng
+            </button>
+            <button type="button" class="btn btn-danger" @click="confirmReject">
+              Từ chối
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -152,19 +184,25 @@ const store = useRequestStore();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { connect, disconnect, on, off } = useSocket();
+
 const bookModal = ref(null);
 const selectedRequest = ref(null);
 let modalInstance = null;
 
+/* Reject modal */
+const rejectModalRef = ref(null);
+let rejectModal = null;
+const rejectReason = ref("");
+const rejectId = ref(null);
+
 onMounted(() => {
   store.fetch();
+
   modalInstance = new Modal(bookModal.value);
-  
+  rejectModal = new Modal(rejectModalRef.value);
+
   connect();
-  on(SOCKET_EVENTS.REQUEST_CREATED, () => {
-    console.log('📨 New request created - refreshing');
-    store.fetch();
-  });
+  on(SOCKET_EVENTS.REQUEST_CREATED, () => store.fetch());
   on(SOCKET_EVENTS.REQUEST_ADDED, () => store.fetch());
   on(SOCKET_EVENTS.REQUEST_UPDATED, () => store.fetch());
   on(SOCKET_EVENTS.REQUEST_DELETED, () => store.fetch());
@@ -189,52 +227,55 @@ const reload = () => {
 };
 
 const changePage = (p) => {
-  const maxPage = Math.ceil(store.total / store.limit) || 1;
-  if (p < 1 || p > maxPage) return;
+  const max = Math.ceil(store.total / store.limit) || 1;
+  if (p < 1 || p > max) return;
   store.page = p;
   store.fetch();
 };
 
-/* APPROVE */
 const approve = async (id) => {
   try {
     await confirm("Xác nhận duyệt yêu cầu mượn này?");
     await store.approve(id);
-    toast.success('Đã duyệt yêu cầu');
+    toast.success("Đã duyệt yêu cầu");
   } catch (err) {
-    if (err && err.response) {
-      toast.error(err.response?.data?.message || 'Lỗi duyệt yêu cầu');
-    }
+    toast.error(err.response?.data?.message || "Lỗi duyệt yêu cầu");
   }
 };
 
-/* REJECT */
-const reject = async (id) => {
-  const reason = prompt("Nhập lý do từ chối:");
-  if (!reason) return;
+/* OPEN REJECT MODAL */
+const openReject = (id) => {
+  rejectId.value = id;
+  rejectReason.value = "";
+  rejectModal.show();
+};
+
+/* CONFIRM REJECT */
+const confirmReject = async () => {
+  if (!rejectReason.value.trim()) {
+    toast.error("Vui lòng nhập lý do từ chối");
+    return;
+  }
   try {
-    await store.reject(id, reason);
-    toast.success('Đã từ chối yêu cầu');
+    await store.reject(rejectId.value, rejectReason.value);
+    toast.success("Đã từ chối yêu cầu");
+    rejectModal.hide();
   } catch (err) {
-    toast.error(err.response?.data?.message || 'Lỗi từ chối yêu cầu');
+    toast.error(err.response?.data?.message || "Lỗi từ chối yêu cầu");
   }
 };
 
-/* BADGE COLOR */
-const badge = (st) =>
-  ({
-    CHO_DUYET: "bg-warning text-dark",
-    DA_DUYET: "bg-success",
-    TU_CHOI: "bg-danger",
-  }[st]);
+const badge = (st) => ({
+  CHO_DUYET: "bg-warning text-dark",
+  DA_DUYET: "bg-success",
+  TU_CHOI: "bg-danger",
+}[st]);
 
-/* STATUS TEXT */
-const convertStatus = (st) =>
-  ({
-    CHO_DUYET: "Chờ duyệt",
-    DA_DUYET: "Đã duyệt",
-    TU_CHOI: "Từ chối",
-  }[st] || st);
+const convertStatus = (st) => ({
+  CHO_DUYET: "Chờ duyệt",
+  DA_DUYET: "Đã duyệt",
+  TU_CHOI: "Từ chối",
+}[st] || st);
 
 const formatDate = (d) =>
   new Date(d).toLocaleString("vi-VN", {
@@ -264,28 +305,15 @@ const formatDate = (d) =>
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-}
-
-.header-icon {
-  font-size: 1.8rem;
 }
 
 .header-title {
   font-size: 1.8rem;
   font-weight: 700;
-  margin: 0;
 }
 
 .header-subtitle {
-  font-size: 0.95rem;
   opacity: 0.9;
-  margin: 0;
-}
-
-.table td,
-.table th {
-  vertical-align: middle;
 }
 
 .badge {

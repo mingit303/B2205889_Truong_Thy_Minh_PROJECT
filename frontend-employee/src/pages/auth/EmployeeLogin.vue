@@ -57,7 +57,7 @@ const onSubmit = async () => {
     toast.success(`Chào mừng ${auth.user?.HoTenNV || 'bạn'}!`, "Đăng nhập thành công");
     router.push({ name: "dashboard" });
   } catch (err) {
-    // error đã set trong store
+    form.Password = "";
   }
 };
 </script>

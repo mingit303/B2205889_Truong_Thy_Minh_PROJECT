@@ -74,7 +74,7 @@ async getAll(query) {
       DaThanhToanPhat: false,
     });
     if (unpaidFine) {
-      throw new Error("Độc giả có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi duyệt yêu cầu mượn.");
+      throw new Error("Độc giả có tiền phạt chưa thanh toán.");
     }
 
     // Kiểm tra xem có sách nào trong yêu cầu đã được mượn chưa trả không

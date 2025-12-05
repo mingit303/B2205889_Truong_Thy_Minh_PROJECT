@@ -59,6 +59,11 @@ exports.login = async (req, res) => {
 
     if (!reader) return res.status(400).json({ message: "Tài khoản không tồn tại" });
 
+    // Kiểm tra tài khoản có bị khóa không
+    if (reader.TrangThai !== 1) {
+      return res.status(403).json({ message: "Tài khoản đã bị khóa" });
+    }
+
     const ok = await bcrypt.compare(MatKhau, reader.MatKhau);
     if (!ok) return res.status(400).json({ message: "Sai mật khẩu" });
 

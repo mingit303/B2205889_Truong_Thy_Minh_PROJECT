@@ -8,6 +8,12 @@ const app = createApp(App);
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './assets/main.css'
 import VueApexCharts from "vue3-apexcharts";
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/el-popper.css'
+import 'element-plus/theme-chalk/el-select.css'
+import 'element-plus/theme-chalk/el-option.css'
+import 'element-plus/theme-chalk/el-scrollbar.css'
 // JS Bootstrap (fix dropdown, modal, tooltip,…)
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -134,4 +140,4 @@ app.use(router);
 
 app.use(VueApexCharts);
 
-app.mount("#app");
+app.use(ElementPlus).mount("#app");

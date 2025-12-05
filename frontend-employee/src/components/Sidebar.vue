@@ -5,7 +5,7 @@
       <img src="../assets/frontend_logo.png" alt="Logo" class="sidebar-logo me-2" />
       <div>
         <div class="fw-bold">MingMing Library</div>
-        <small class="text-light opacity-75">Employee Panel</small>
+        <!-- <small class="text-light opacity-75">Employee Panel</small> -->
       </div>
     </div>
 

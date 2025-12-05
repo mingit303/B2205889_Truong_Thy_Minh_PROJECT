@@ -34,53 +34,65 @@
 
           <div class="col-md-2">
             <label class="form-label">Thể loại</label>
-            <select
+            <el-select
               v-model="store.category"
-              class="form-select"
+              placeholder="Tất cả"
+              filterable
+              clearable
+              style="width: 100%"
               @change="store.fetch"
             >
-              <option value="">Tất cả</option>
-              <option v-for="c in categories" :key="c._id" :value="c._id">
-                {{ c.TenTheLoai }}
-              </option>
-            </select>
+              <el-option
+                v-for="c in categories"
+                :key="c._id"
+                :label="c.TenTheLoai"
+                :value="c._id"
+              />
+            </el-select>
           </div>
 
           <div class="col-md-2">
             <label class="form-label">NXB</label>
-            <select
+            <el-select
               v-model="store.publisher"
-              class="form-select"
+              placeholder="Tất cả"
+              filterable
+              clearable
+              style="width: 100%"
               @change="store.fetch"
             >
-              <option value="">Tất cả</option>
-              <option v-for="p in publishers" :key="p._id" :value="p._id">
-                {{ p.TenNXB }}
-              </option>
-            </select>
+              <el-option
+                v-for="p in publishers"
+                :key="p._id"
+                :label="p.TenNXB"
+                :value="p._id"
+              />
+            </el-select>
           </div>
 
           <div class="col-md-2">
             <label class="form-label">Tác giả</label>
-            <select
+            <el-select
               v-model="store.author"
-              class="form-select"
+              placeholder="Tất cả"
+              filterable
+              clearable
+              style="width: 100%"
               @change="store.fetch"
             >
-              <option value="">Tất cả</option>
-              <option v-for="a in authors" :key="a._id" :value="a._id">
-                {{ a.TenTacGia }}
-              </option>
-            </select>
+              <el-option
+                v-for="a in authors"
+                :key="a._id"
+                :label="a.TenTacGia"
+                :value="a._id"
+              />
+            </el-select>
           </div>
 
           <div class="col-md-3 text-end">
             <button class="btn btn-outline-secondary me-2" @click="resetFilter">
               <font-awesome-icon icon="rotate-left" class="me-1" /> Xóa lọc
             </button>
-            <!-- <button class="btn btn-primary" @click="store.fetch">
-              <font-awesome-icon icon="magnifying-glass" class="me-1" /> Lọc
-            </button> -->
           </div>
         </div>
       </div>
@@ -173,11 +185,7 @@
               <h5 class="modal-title">
                 {{ editing ? "Cập nhật sách" : "Thêm sách mới" }}
               </h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
@@ -191,8 +199,6 @@
                     class="form-control"
                     :disabled="editing"
                     required
-                    minlength="2"
-                    maxlength="20"
                   />
                 </div>
 
@@ -201,41 +207,62 @@
                   <input 
                     v-model="form.TenSach" 
                     type="text"
-                    class="form-control" 
-                    
-                    minlength="2"
-                    maxlength="200"
+                    class="form-control"
                   />
                 </div>
 
                 <div class="col-md-4">
                   <label class="form-label">Thể loại *</label>
-                  <select v-model="form.MaTheLoai" class="form-select" required>
-                    <option value="">-- Chọn --</option>
-                    <option v-for="c in categories" :key="c._id" :value="c._id">
-                      {{ c.TenTheLoai }}
-                    </option>
-                  </select>
+                  <el-select
+                    v-model="form.MaTheLoai"
+                    placeholder="Chọn thể loại"
+                    filterable
+                    clearable
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="c in categories"
+                      :key="c._id"
+                      :label="c.TenTheLoai"
+                      :value="c._id"
+                    />
+                  </el-select>
                 </div>
 
                 <div class="col-md-4">
                   <label class="form-label">Tác giả *</label>
-                  <select v-model="form.MaTacGia" class="form-select" required>
-                    <option value="">-- Chọn --</option>
-                    <option v-for="a in authors" :key="a._id" :value="a._id">
-                      {{ a.TenTacGia }}
-                    </option>
-                  </select>
+                  <el-select
+                    v-model="form.MaTacGia"
+                    placeholder="Chọn tác giả"
+                    filterable
+                    clearable
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="a in authors"
+                      :key="a._id"
+                      :label="a.TenTacGia"
+                      :value="a._id"
+                    />
+                  </el-select>
                 </div>
 
                 <div class="col-md-4">
                   <label class="form-label">NXB *</label>
-                  <select v-model="form.MaNXB" class="form-select" required>
-                    <option value="">-- Chọn --</option>
-                    <option v-for="p in publishers" :key="p._id" :value="p._id">
-                      {{ p.TenNXB }}
-                    </option>
-                  </select>
+                  <el-select
+                    v-model="form.MaNXB"
+                    placeholder="Chọn NXB"
+                    filterable
+                    clearable
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="p in publishers"
+                      :key="p._id"
+                      :label="p.TenNXB"
+                      :value="p._id"
+                    />
+                  </el-select>
                 </div>
 
                 <div class="col-md-4">
@@ -274,11 +301,7 @@
 
                 <div class="col-12">
                   <label class="form-label">Mô tả</label>
-                  <textarea
-                    v-model="form.MoTa"
-                    rows="3"
-                    class="form-control"
-                  ></textarea>
+                  <textarea v-model="form.MoTa" rows="3" class="form-control"></textarea>
                 </div>
 
                 <div class="col-12">
@@ -308,24 +331,11 @@
                   </div>
                 </div>
 
-                <div class="col-md-6" v-if="false">
-                  <label class="form-label d-block">Xem trước</label>
-                  <img
-                    :src="previewImg"
-                    class="img-thumbnail"
-                    style="max-height: 160px"
-                  />
-                </div>
-
               </div>
             </div>
 
             <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                 Đóng
               </button>
               <button type="submit" class="btn btn-primary">
@@ -387,38 +397,22 @@ let modalInstance = null;
 onMounted(async () => {
   await Promise.all([store.fetch(), loadCombos()]);
   modalInstance = new bootstrap.Modal(modalRef.value);
-  
-  // Reset form khi đóng modal
   modalRef.value.addEventListener('hidden.bs.modal', resetForm);
-  
-  // Connect socket and listen for book events
+
   connect();
-  on(SOCKET_EVENTS.BOOK_ADDED, handleBookAdded);
-  on(SOCKET_EVENTS.BOOK_UPDATED, handleBookUpdated);
-  on(SOCKET_EVENTS.BOOK_DELETED, handleBookDeleted);
+  on(SOCKET_EVENTS.BOOK_ADDED, loadBooks);
+  on(SOCKET_EVENTS.BOOK_UPDATED, loadBooks);
+  on(SOCKET_EVENTS.BOOK_DELETED, loadBooks);
 });
+
+const loadBooks = () => store.fetch();
 
 onUnmounted(() => {
-  off(SOCKET_EVENTS.BOOK_ADDED, handleBookAdded);
-  off(SOCKET_EVENTS.BOOK_UPDATED, handleBookUpdated);
-  off(SOCKET_EVENTS.BOOK_DELETED, handleBookDeleted);
+  off(SOCKET_EVENTS.BOOK_ADDED, loadBooks);
+  off(SOCKET_EVENTS.BOOK_UPDATED, loadBooks);
+  off(SOCKET_EVENTS.BOOK_DELETED, loadBooks);
   disconnect();
 });
-
-const handleBookAdded = () => {
-  console.log('📦 New book added - refreshing list');
-  store.fetch();
-};
-
-const handleBookUpdated = () => {
-  console.log('✏️ Book updated - refreshing list');
-  store.fetch();
-};
-
-const handleBookDeleted = () => {
-  console.log('🗑️ Book deleted - refreshing list');
-  store.fetch();
-};
 
 const loadCombos = async () => {
   const [cRes, pRes, aRes] = await Promise.all([
@@ -459,7 +453,6 @@ const changePage = (p) => {
 
 const openCreate = () => {
   editing.value = false;
-
   Object.assign(form, {
     _id: "",
     MaSach: "",
@@ -474,10 +467,8 @@ const openCreate = () => {
     AnhBia: null,
   });
 
-  // RESET file input
   if (fileInputRef.value) fileInputRef.value.value = null;
   previewImg.value = "";
-
   modalInstance.show();
 };
 
@@ -498,21 +489,9 @@ const openEdit = (book) => {
     AnhBia: null,
   });
 
-  // Lưu dữ liệu gốc để so sánh
-  originalData.value = {
-    TenSach: book.TenSach,
-    MaTheLoai: book.MaTheLoai?._id || "",
-    MaTacGia: book.MaTacGia?._id || "",
-    MaNXB: book.MaNXB?._id || "",
-    DonGia: book.DonGia,
-    SoQuyen: book.SoQuyen,
-    NamXuatBan: book.NamXuatBan,
-    MoTa: book.MoTa || "",
-  };
+  originalData.value = { ...form };
 
-  // Reset input file
   if (fileInputRef.value) fileInputRef.value.value = null;
-
   previewImg.value = book.AnhBia || "";
 
   modalInstance.show();
@@ -540,7 +519,7 @@ const resetForm = () => {
     MoTa: "",
     AnhBia: null,
   });
-  
+
   if (fileInputRef.value) fileInputRef.value.value = null;
   previewImg.value = "";
   editing.value = false;
@@ -548,49 +527,17 @@ const resetForm = () => {
 };
 
 const submitForm = async () => {
-  // Kiểm tra thay đổi khi cập nhật
-  if (editing.value && originalData.value) {
-    const hasChanges = 
-      form.TenSach !== originalData.value.TenSach ||
-      form.MaTheLoai !== originalData.value.MaTheLoai ||
-      form.MaTacGia !== originalData.value.MaTacGia ||
-      form.MaNXB !== originalData.value.MaNXB ||
-      form.DonGia !== originalData.value.DonGia ||
-      form.SoQuyen !== originalData.value.SoQuyen ||
-      form.NamXuatBan !== originalData.value.NamXuatBan ||
-      form.MoTa !== originalData.value.MoTa ||
-      form.AnhBia instanceof File;
-    
-    if (!hasChanges) {
-      modalInstance.hide();
-      return;
-    }
-  }
-
-  // Kiểm tra trùng tên sách khi thêm mới
-  if (!editing.value) {
-    const exists = store.items.some(b => 
-      b.TenSach.toLowerCase().trim() === form.TenSach.toLowerCase().trim()
-    );
-    if (exists) {
-      toast.error('Tên sách đã tồn tại!');
-      return;
-    }
-  }
-
   const fd = new FormData();
 
-  const plain = { ...form };
-  delete plain._id;
+  const temp = { ...form };
+  delete temp._id;
 
-  Object.entries(plain).forEach(([key, value]) => {
-    if (key === "AnhBia") {
-      if (value instanceof File) fd.append("AnhBia", value);
+  Object.entries(temp).forEach(([k, v]) => {
+    if (k === "AnhBia") {
+      if (v instanceof File) fd.append("AnhBia", v);
       return;
     }
-
-    if (value === null || value === "") return;
-    fd.append(key, value);
+    if (v !== null && v !== "") fd.append(k, v);
   });
 
   try {
@@ -602,14 +549,9 @@ const submitForm = async () => {
       toast.success('Đã thêm sách mới');
     }
 
-    // Reset input file sau submit
-    if (fileInputRef.value) fileInputRef.value.value = null;
-    form.AnhBia = null;
     previewImg.value = "";
-
     modalInstance.hide();
   } catch (err) {
-    console.error(err);
     toast.error(err.response?.data?.message || "Không thể lưu sách");
   }
 };
@@ -619,15 +561,13 @@ const confirmDelete = async (book) => {
     await confirm(`Xóa sách "${book.TenSach}"?`);
     await store.remove(book._id);
     toast.success('Đã xóa sách');
-  } catch (err) {
-    if (err && err.response) {
-      toast.error(err.response?.data?.message || 'Lỗi xóa sách');
-    }
+  } catch {
+    toast.error("Lỗi xóa sách");
   }
 };
 
 const formatPrice = (v) => {
-  if (!v && v !== 0) return "";
+  if (v === null || v === undefined) return "";
   return v.toLocaleString("vi-VN") + " đ";
 };
 </script>
@@ -649,90 +589,23 @@ const formatPrice = (v) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
 }
 
 .header-icon {
   font-size: 1.8rem;
 }
 
-.header-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.header-subtitle {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
 .upload-area {
   border: 2px dashed #d0d7de;
   border-radius: 12px;
   padding: 2rem;
-  text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
   background: #f8f9fa;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.upload-area:hover {
-  border-color: #1976d2;
-  background: #e3f2fd;
-}
-
-.upload-placeholder {
-  color: #6c757d;
-}
-
-.upload-icon {
-  font-size: 3rem;
-  color: #1976d2;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.upload-preview {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
+  text-align: center;
 }
 
 .upload-preview img {
   max-height: 200px;
-  max-width: 100%;
-  border-radius: 8px;
   object-fit: contain;
-}
-
-.upload-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 8px;
-  font-weight: 600;
-}
-
-.upload-area:hover .upload-overlay {
-  opacity: 1;
-}
-
-.table tbody tr:hover {
-  background: #f3f6ff;
 }
 </style>
