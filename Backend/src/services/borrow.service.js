@@ -12,23 +12,9 @@ const getCfg = async (key, def = 0) => {
   return c ? Number(c.GiaTri) : def;
 };
 
-// Helper tính tiền phạt trễ hạn theo quy tắc leo thang
-const calculateLateFee = async (daysLate, soLanGiaHan, soLanTreHan) => {
+// Helper tính tiền phạt trễ hạn - mức cố định
+const calculateLateFee = async (daysLate) => {
   const baseFine = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
-  
-  // Nếu đã gia hạn ít nhất 1 lần VÀ đang bị trễ
-  if (soLanGiaHan >= 1) {
-    // Lần trễ đầu tiên sau khi gia hạn: 15,000đ/ngày
-    if (soLanTreHan === 0) {
-      return daysLate * 15000;
-    }
-    // Lần trễ thứ hai trở đi: 30,000đ/ngày
-    else {
-      return daysLate * 30000;
-    }
-  }
-  
-  // Nếu chưa gia hạn lần nào: phạt thông thường 5,000đ/ngày
   return daysLate * baseFine;
 };
 
@@ -191,12 +177,12 @@ exports.returnBook = async (id) => {
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
     
-    // Tính tiền phạt theo quy tắc leo thang
-    tienPhat = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
+    // Tính tiền phạt cố định 5k/ngày
+    tienPhat = await calculateLateFee(daysLate);
     
     r.TienPhat = tienPhat;
     r.LyDoXuPhat = "Trễ hạn";
-    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
+    // KHÔNG tăng SoLanTreHan vì mỗi phiếu chỉ trả 1 lần
   }
   
   // Luôn chuyển về "Đã trả" khi trả sách (dù có phạt hay không)
@@ -242,36 +228,13 @@ exports.extendBorrow = async (id) => {
     throw new Error(`Đã đạt số lần gia hạn tối đa (${maxExtend})`);
   }
 
-  const now = new Date();
-  
-  // Nếu đang trễ hạn thì tính tiền phạt trước khi gia hạn
-  if (r.TrangThai === "Trễ hạn" || now > r.HanTra) {
-    const hanTraDate = new Date(r.HanTra);
-    hanTraDate.setHours(0, 0, 0, 0);
-    const nowDate = new Date(now);
-    nowDate.setHours(0, 0, 0, 0);
-    
-    const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
-    
-    if (daysLate > 0) {
-      // Tính tiền phạt cho lần trễ này
-      const lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
-      
-      // Cộng dồn tiền phạt
-      r.TienPhat = (r.TienPhat || 0) + lateFine;
-      r.LyDoXuPhat = r.LyDoXuPhat 
-        ? `${r.LyDoXuPhat}; Trễ hạn ${daysLate} ngày khi gia hạn lần ${r.SoLanGiaHan + 1}`
-        : `Trễ hạn ${daysLate} ngày khi gia hạn lần ${r.SoLanGiaHan + 1}`;
-      
-      // Tăng số lần trễ hạn
-      r.SoLanTreHan += 1;
-    }
-  }
-
+  // Gia hạn: chỉ tăng số lần gia hạn và cập nhật hạn trả
+  // KHÔNG tính phạt trễ tại đây - phạt sẽ tính khi trả sách
   r.SoLanGiaHan += 1;
   r.TrangThai = "Đã mượn"; // Chuyển về trạng thái bình thường sau khi gia hạn
   
   // Gia hạn thêm số ngày và set về 23:59:59 của ngày hết hạn mới
+  const now = new Date();
   const newDeadline = new Date(r.HanTra.getTime() + extendDays * 86400000);
   newDeadline.setHours(23, 59, 59, 999);
   r.HanTra = newDeadline;
@@ -311,16 +274,15 @@ exports.reportDamaged = async (id, data) => {
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
     
-    // Tính tiền phạt theo quy tắc leo thang
-    lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
-    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
+    // Tính tiền phạt cố định 5k/ngày - CHỈ 1 LẦN
+    lateFine = await calculateLateFee(daysLate);
   }
   
   // Tính tiền phạt hư hỏng
   const perc = data.MucDoHuHong === "Nhẹ" ? light : heavy;
   const damagePrice = Math.round((book.DonGia * perc) / 100);
   
-  // CỘNG DỒN: tiền phạt trễ hạn + tiền phạt hư hỏng
+  // CỘNG: tiền phạt trễ hạn + tiền phạt hư hỏng (chỉ tính 1 lần)
   r.TienPhat = lateFine + damagePrice;
   
   // Cập nhật lý do xử phạt
@@ -373,15 +335,14 @@ exports.reportLost = async (id, data) => {
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
     
-    // Tính tiền phạt theo quy tắc leo thang
-    lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
-    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
+    // Tính tiền phạt cố định 5k/ngày - CHỈ 1 LẦN
+    lateFine = await calculateLateFee(daysLate);
   }
   
   // Tính tiền phạt mất sách
   const lostPrice = Math.round((book.DonGia * lostRate) / 100) + fee;
   
-  // CỘNG DỒN: tiền phạt trễ hạn + tiền phạt mất sách
+  // CỘNG: tiền phạt trễ hạn + tiền phạt mất sách (chỉ tính 1 lần)
   r.TienPhat = lateFine + lostPrice;
   
   // Cập nhật lý do xử phạt

@@ -145,7 +145,7 @@
           <form @submit.prevent="submitForm">
             <div class="modal-header">
               <h5 class="modal-title">{{ editing ? "Cập nhật" : "Thêm" }} độc giả</h5>
-              <button class="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
@@ -243,8 +243,8 @@
             </div>
 
             <div class="modal-footer">
-              <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-              <button class="btn btn-primary">{{ editing ? "Lưu" : "Thêm" }}</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              <button type="submit" class="btn btn-primary">{{ editing ? "Lưu" : "Thêm" }}</button>
             </div>
 
           </form>

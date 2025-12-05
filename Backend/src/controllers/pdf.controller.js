@@ -150,175 +150,172 @@ exports.printBorrowTicket = async (req, res) => {
     
     doc.moveDown(0.5);
 
-    /* CHI TIẾT TIỀN PHẠT - TABLE (only if there's a fine) */
-    if (br.TienPhat && br.TienPhat > 0) {
-      tableTop = doc.y;
+    // /* CHI TIẾT TIỀN PHẠT - TABLE (only if there's a fine) */
+    // if (br.TienPhat && br.TienPhat > 0) {
+    //   tableTop = doc.y;
       
-      // Header
-      doc.rect(40, tableTop, 515, 25).fillAndStroke("#d32f2f", "#d32f2f");
-      doc.fillColor("#ffffff").font(fontBold).fontSize(12);
-      doc.text("CHI TIẾT TIỀN PHẠT", 40, tableTop + 7, { width: 515, align: "center" });
+    //   // Header
+    //   doc.rect(40, tableTop, 515, 25).fillAndStroke("#d32f2f", "#d32f2f");
+    //   doc.fillColor("#ffffff").font(fontBold).fontSize(12);
+    //   doc.text("CHI TIẾT TIỀN PHẠT", 40, tableTop + 7, { width: 515, align: "center" });
       
-      tableTop += 25;
+    //   tableTop += 25;
       
-      // Lấy thông tin sách để tính chính xác giá phạt hư hỏng/mất
-      const bookInfo = await Book.findOne({ MaSach: br.MaSach });
-      const bookPrice = bookInfo ? bookInfo.DonGia : 0;
+    //   // Lấy thông tin sách để tính chính xác giá phạt hư hỏng/mất
+    //   const bookInfo = await Book.findOne({ MaSach: br.MaSach });
+    //   const bookPrice = bookInfo ? bookInfo.DonGia : 0;
       
-      // Calculate fine breakdown - ĐÚNG THEO LOGIC SERVICE
-      let daysLate = 0;
-      let lateFine = 0;
-      let damageFine = 0;
-      let fineRate = 5000; // Mức phạt mặc định
+    //   // Calculate fine breakdown - ĐÚNG THEO LOGIC SERVICE
+    //   let daysLate = 0;
+    //   let lateFine = 0;
+    //   let damageFine = 0;
+    //   let fineRate = 5000; // Mức phạt mặc định
       
-      // Tính số ngày trễ (giống service: so sánh ngày không tính giờ)
-      if (br.NgayTra && br.HanTra) {
-        const hanTraDate = new Date(br.HanTra);
-        hanTraDate.setHours(0, 0, 0, 0);
-        const ngayTraDate = new Date(br.NgayTra);
-        ngayTraDate.setHours(0, 0, 0, 0);
+    //   // Tính số ngày trễ (giống service: so sánh ngày không tính giờ)
+    //   if (br.NgayTra && br.HanTra) {
+    //     const hanTraDate = new Date(br.HanTra);
+    //     hanTraDate.setHours(0, 0, 0, 0);
+    //     const ngayTraDate = new Date(br.NgayTra);
+    //     ngayTraDate.setHours(0, 0, 0, 0);
         
-        if (ngayTraDate > hanTraDate) {
-          daysLate = Math.floor((ngayTraDate - hanTraDate) / 86400000); // Dùng floor như service
+    //     if (ngayTraDate > hanTraDate) {
+    //       daysLate = Math.floor((ngayTraDate - hanTraDate) / 86400000); // Dùng floor như service
           
-          // Tính fine rate theo quy tắc leo thang
-          if (br.SoLanGiaHan >= 1) {
-            if (br.SoLanTreHan === 0 || br.SoLanTreHan === 1) {
-              fineRate = 15000; // Lần trễ đầu tiên sau gia hạn
-            } else {
-              fineRate = 30000; // Lần trễ thứ 2 trở đi
-            }
-          }
-          lateFine = daysLate * fineRate;
-        }
-      }
+    //       // Tính fine rate theo SỐ LẦN GIA HẠN
+    //       if (br.SoLanGiaHan === 1) {
+    //         fineRate = 15000; // Sau gia hạn lần 1
+    //       } else if (br.SoLanGiaHan >= 2) {
+    //         fineRate = 30000; // Sau gia hạn lần 2
+    //       }
+    //       lateFine = daysLate * fineRate;
+    //     }
+    //   }
       
-      // Tính phạt hư hỏng/mất (phần còn lại sau khi trừ phạt trễ)
-      if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
-        damageFine = br.TienPhat - lateFine;
-      }
+    //   // Tính phạt hư hỏng/mất (phần còn lại sau khi trừ phạt trễ)
+    //   if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
+    //     damageFine = br.TienPhat - lateFine;
+    //   }
       
-      // Rows - hiển thị đầy đủ chi tiết
-      const fineData = [];
+    //   // Rows - hiển thị đầy đủ chi tiết
+    //   const fineData = [];
       
-      // 1. Lý do xử phạt (nếu có)
-      if (br.LyDoXuPhat) {
-        fineData.push(["Lý do xử phạt", br.LyDoXuPhat]);
-      }
+    //   // 1. Lý do xử phạt (nếu có)
+    //   if (br.LyDoXuPhat) {
+    //     fineData.push(["Lý do xử phạt", br.LyDoXuPhat]);
+    //   }
       
-      // 2. Thông tin gia hạn và trễ (nếu có)
-      if (br.SoLanGiaHan && br.SoLanGiaHan > 0) {
-        fineData.push(["Số lần gia hạn", `${br.SoLanGiaHan} lần`]);
-      }
+    //   // 2. Thông tin gia hạn và trễ (nếu có)
+    //   if (br.SoLanGiaHan && br.SoLanGiaHan > 0) {
+    //     fineData.push(["Số lần gia hạn", `${br.SoLanGiaHan} lần`]);
+    //   }
       
-      if (br.SoLanTreHan && br.SoLanTreHan > 0) {
-        fineData.push(["Số lần trễ hạn", `${br.SoLanTreHan} lần`]);
-      }
+    //   // Hiển thị chi tiết số ngày trễ theo mức gia hạn
+    //   if (daysLate > 0) {
+    //     if (br.SoLanGiaHan === 0) {
+    //       fineData.push(["Số ngày trễ (chưa gia hạn)", `${daysLate} ngày`]);
+    //     } else if (br.SoLanGiaHan === 1) {
+    //       fineData.push(["Số ngày trễ (sau gia hạn lần 1)", `${daysLate} ngày`]);
+    //     } else if (br.SoLanGiaHan >= 2) {
+    //       fineData.push(["Số ngày trễ (sau gia hạn lần 2)", `${daysLate} ngày`]);
+    //     }
+    //   }
       
-      // 3. PHẠT TRỄ HẠN - Hiển thị chi tiết đầy đủ
-      if (daysLate > 0 && lateFine > 0) {
-        // Giải thích mức phạt CHI TIẾT
-        let rateExplanation = "";
-        if (br.SoLanGiaHan === 0) {
-          rateExplanation = " (chưa gia hạn)";
-        } else if (br.SoLanGiaHan === 1) {
-          if (br.SoLanTreHan === 0 || br.SoLanTreHan === 1) {
-            rateExplanation = " (trễ lần 1 sau khi gia hạn lần 1)";
-          } else {
-            rateExplanation = ` (trễ lần ${br.SoLanTreHan} sau khi gia hạn lần 1)`;
-          }
-        } else if (br.SoLanGiaHan === 2) {
-          if (br.SoLanTreHan <= 1) {
-            rateExplanation = " (trễ lần 1 sau khi gia hạn lần 2)";
-          } else {
-            rateExplanation = ` (trễ lần ${br.SoLanTreHan} sau khi gia hạn lần 2)`;
-          }
-        }
+    //   // 3. PHẠT TRỄ HẠN - Hiển thị chi tiết đầy đủ
+    //   if (daysLate > 0 && lateFine > 0) {
+    //     // Giải thích mức phạt dựa vào SỐ LẦN GIA HẠN
+    //     let rateExplanation = "";
+    //     if (br.SoLanGiaHan === 0) {
+    //       rateExplanation = " (chưa gia hạn)";
+    //     } else if (br.SoLanGiaHan === 1) {
+    //       rateExplanation = " (sau gia hạn lần 1)";
+    //     } else if (br.SoLanGiaHan === 2) {
+    //       rateExplanation = " (sau gia hạn lần 2)";
+    //     }
         
-        fineData.push([
-          "Phạt trễ hạn",
-          `${daysLate} ngày × ${fineRate.toLocaleString("vi-VN")} đ${rateExplanation} = ${lateFine.toLocaleString("vi-VN")} đ`
-        ]);
-      } else {
-        fineData.push(["Phạt trễ hạn", "0 đ (trả đúng hạn)"]);
-      }
+    //     fineData.push([
+    //       "Phạt trễ hạn",
+    //       `${daysLate} ngày × ${fineRate.toLocaleString("vi-VN")} đ${rateExplanation} = ${lateFine.toLocaleString("vi-VN")} đ`
+    //     ]);
+    //   } else {
+    //     fineData.push(["Phạt trễ hạn", "0 đ (trả đúng hạn)"]);
+    //   }
       
-      // 4. PHẠT HƯ HỎNG/MẤT SÁCH - Chi tiết đầy đủ VỚI GIÁ SÁCH THẬT
-      if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
-        if (br.TrangThai === "Hư hỏng") {
-          const damageLevel = br.MucDoHuHong || "Không rõ";
-          const percentage = damageLevel === "Nhẹ" ? 30 : damageLevel === "Nặng" ? 70 : 0;
+    //   // 4. PHẠT HƯ HỎNG/MẤT SÁCH - Chi tiết đầy đủ VỚI GIÁ SÁCH THẬT
+    //   if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
+    //     if (br.TrangThai === "Hư hỏng") {
+    //       const damageLevel = br.MucDoHuHong || "Không rõ";
+    //       const percentage = damageLevel === "Nhẹ" ? 30 : damageLevel === "Nặng" ? 70 : 0;
           
-          if (bookPrice > 0 && percentage > 0) {
-            const calculatedDamage = Math.round(bookPrice * percentage / 100);
-            fineData.push([
-              `Phạt hư hỏng (${damageLevel})`,
-              `${percentage}% × ${bookPrice.toLocaleString("vi-VN")} đ = ${calculatedDamage.toLocaleString("vi-VN")} đ`
-            ]);
-          } else {
-            fineData.push([
-              `Phạt hư hỏng (${damageLevel})`,
-              `${percentage}% giá sách`
-            ]);
-          }
-        } else if (br.TrangThai === "Mất sách") {
-          if (bookPrice > 0) {
-            const lostFee = 50000;
-            fineData.push([
-              "Phạt mất sách",
-              `100% × ${bookPrice.toLocaleString("vi-VN")} đ + ${lostFee.toLocaleString("vi-VN")} đ phí = ${(bookPrice + lostFee).toLocaleString("vi-VN")} đ`
-            ]);
-          } else {
-            fineData.push([
-              "Phạt mất sách",
-              "100% giá sách + 50,000 đ phí xử lý"
-            ]);
-          }
-        }
-      }
+    //       if (bookPrice > 0 && percentage > 0) {
+    //         const calculatedDamage = Math.round(bookPrice * percentage / 100);
+    //         fineData.push([
+    //           `Phạt hư hỏng (${damageLevel})`,
+    //           `${percentage}% × ${bookPrice.toLocaleString("vi-VN")} đ = ${calculatedDamage.toLocaleString("vi-VN")} đ`
+    //         ]);
+    //       } else {
+    //         fineData.push([
+    //           `Phạt hư hỏng (${damageLevel})`,
+    //           `${percentage}% giá sách`
+    //         ]);
+    //       }
+    //     } else if (br.TrangThai === "Mất sách") {
+    //       if (bookPrice > 0) {
+    //         const lostFee = 50000;
+    //         fineData.push([
+    //           "Phạt mất sách",
+    //           `100% × ${bookPrice.toLocaleString("vi-VN")} đ + ${lostFee.toLocaleString("vi-VN")} đ phí = ${(bookPrice + lostFee).toLocaleString("vi-VN")} đ`
+    //         ]);
+    //       } else {
+    //         fineData.push([
+    //           "Phạt mất sách",
+    //           "100% giá sách + 50,000 đ phí xử lý"
+    //         ]);
+    //       }
+    //     }
+    //   }
       
-      // 5. Hiển thị các dòng
-      fineData.forEach((row, i) => {
-        const bg = i % 2 === 0 ? "#fff3f3" : "#ffffff";
-        doc.rect(40, tableTop, 515, 25).fillAndStroke(bg, "#e0e0e0");
+    //   // 5. Hiển thị các dòng
+    //   fineData.forEach((row, i) => {
+    //     const bg = i % 2 === 0 ? "#fff3f3" : "#ffffff";
+    //     doc.rect(40, tableTop, 515, 25).fillAndStroke(bg, "#e0e0e0");
         
-        doc.fillColor("#000000").font(fontBold).fontSize(11);
-        doc.text(row[0], 50, tableTop + 7, { width: 180, align: "left" });
+    //     doc.fillColor("#000000").font(fontBold).fontSize(11);
+    //     doc.text(row[0], 50, tableTop + 7, { width: 180, align: "left" });
         
-        doc.font(fontRegular);
-        doc.text(row[1], 240, tableTop + 7, { width: 305, align: "left" });
+    //     doc.font(fontRegular);
+    //     doc.text(row[1], 240, tableTop + 7, { width: 305, align: "left" });
         
-        tableTop += 25;
-      });
+    //     tableTop += 25;
+    //   });
       
-      // 6. TỔNG CỘNG
-      doc.rect(40, tableTop, 515, 30).fillAndStroke("#d32f2f", "#d32f2f");
-      doc.fillColor("#ffffff").font(fontBold).fontSize(13);
-      doc.text("TỔNG TIỀN PHẠT", 50, tableTop + 9, { width: 180, align: "left" });
-      doc.fontSize(15);
+    //   // 6. TỔNG CỘNG
+    //   doc.rect(40, tableTop, 515, 30).fillAndStroke("#d32f2f", "#d32f2f");
+    //   doc.fillColor("#ffffff").font(fontBold).fontSize(13);
+    //   doc.text("TỔNG TIỀN PHẠT", 50, tableTop + 9, { width: 180, align: "left" });
+    //   doc.fontSize(15);
       
-      // Hiển thị công thức tính tổng nếu có cả 2 loại phạt
-      if (lateFine > 0 && damageFine > 0) {
-        doc.fontSize(11);
-        doc.text(
-          `(${lateFine.toLocaleString("vi-VN")} + ${damageFine.toLocaleString("vi-VN")})`,
-          240, tableTop + 5, { width: 305, align: "right" }
-        );
-        doc.fontSize(15);
-        doc.text(
-          `${br.TienPhat.toLocaleString("vi-VN")} đ`,
-          240, tableTop + 16, { width: 305, align: "right" }
-        );
-      } else {
-        doc.text(
-          `${br.TienPhat.toLocaleString("vi-VN")} đ`,
-          240, tableTop + 9, { width: 305, align: "right" }
-        );
-      }
+    //   // Hiển thị công thức tính tổng nếu có cả 2 loại phạt
+    //   if (lateFine > 0 && damageFine > 0) {
+    //     doc.fontSize(11);
+    //     doc.text(
+    //       `(${lateFine.toLocaleString("vi-VN")} + ${damageFine.toLocaleString("vi-VN")})`,
+    //       240, tableTop + 5, { width: 305, align: "right" }
+    //     );
+    //     doc.fontSize(15);
+    //     doc.text(
+    //       `${br.TienPhat.toLocaleString("vi-VN")} đ`,
+    //       240, tableTop + 16, { width: 305, align: "right" }
+    //     );
+    //   } else {
+    //     doc.text(
+    //       `${br.TienPhat.toLocaleString("vi-VN")} đ`,
+    //       240, tableTop + 9, { width: 305, align: "right" }
+    //     );
+    //   }
       
-      tableTop += 30;
-      doc.moveDown(0.5);
-    }
+    //   tableTop += 30;
+    //   doc.moveDown(0.5);
+    // }
     
     doc.fillColor("#000000");
 
@@ -526,11 +523,11 @@ exports.printFineTicket = async (req, res) => {
     const bookInfo = await Book.findOne({ MaSach: br.MaSach });
     const bookPrice = bookInfo ? bookInfo.DonGia : 0;
     
-    // Calculate fine breakdown - ĐÚNG THEO LOGIC SERVICE
+    // Calculate fine breakdown - mức phạt cố định 5k/ngày
     let daysLate = 0;
     let lateFine = 0;
     let damageFine = 0;
-    let fineRate = 5000; // Mức phạt mặc định
+    const fineRate = 5000; // Mức phạt cố định
     
     // Tính số ngày trễ (giống service: so sánh ngày không tính giờ)
     if (br.NgayTra && br.HanTra) {
@@ -540,20 +537,12 @@ exports.printFineTicket = async (req, res) => {
       ngayTraDate.setHours(0, 0, 0, 0);
       
       if (ngayTraDate > hanTraDate) {
-        daysLate = Math.floor((ngayTraDate - hanTraDate) / 86400000); // Dùng floor như service
-        
-        // Tính fine rate theo quy tắc leo thang
-        if (br.SoLanGiaHan >= 1) {
-          if (br.SoLanTreHan === 0 || br.SoLanTreHan === 1) {
-            fineRate = 15000; // Lần trễ đầu tiên sau gia hạn
-          } else {
-            fineRate = 30000; // Lần trễ thứ 2 trở đi
-          }
-        }
+        daysLate = Math.floor((ngayTraDate - hanTraDate) / 86400000);
         lateFine = daysLate * fineRate;
       }
     }
     
+    // Tính phạt hư hỏng/mất (phần còn lại sau khi trừ phạt trễ)
     if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
       damageFine = br.TienPhat - lateFine;
     }
@@ -571,43 +560,27 @@ exports.printFineTicket = async (req, res) => {
       fineData.push(["Mức độ hư hỏng", br.MucDoHuHong]);
     }
     
-    // 3. Thông tin gia hạn và trễ (nếu có)
+    // 3. Thông tin gia hạn (nếu có)
     if (br.SoLanGiaHan && br.SoLanGiaHan > 0) {
       fineData.push(["Số lần gia hạn", `${br.SoLanGiaHan} lần`]);
     }
     
-    if (br.SoLanTreHan && br.SoLanTreHan > 0) {
-      fineData.push(["Số lần trễ hạn", `${br.SoLanTreHan} lần`]);
+    // Hiển thị số ngày trễ (nếu có)
+    if (daysLate > 0) {
+      fineData.push(["Số ngày trễ hạn", `${daysLate} ngày`]);
     }
     
-      // 4. PHẠT TRỄ HẠN - Hiển thị chi tiết đầy đủ
+      // 4. PHẠT TRỄ HẠN - Hiển thị chi tiết
       if (daysLate > 0 && lateFine > 0) {
-        // Giải thích mức phạt CHI TIẾT
-        let rateExplanation = "";
-        if (br.SoLanGiaHan === 0) {
-          rateExplanation = " (chưa gia hạn)";
-        } else if (br.SoLanGiaHan === 1) {
-          if (br.SoLanTreHan === 0 || br.SoLanTreHan === 1) {
-            rateExplanation = " (trễ lần 1 sau khi gia hạn lần 1)";
-          } else {
-            rateExplanation = ` (trễ lần ${br.SoLanTreHan} sau khi gia hạn lần 1)`;
-          }
-        } else if (br.SoLanGiaHan === 2) {
-          if (br.SoLanTreHan <= 1) {
-            rateExplanation = " (trễ lần 1 sau khi gia hạn lần 2)";
-          } else {
-            rateExplanation = ` (trễ lần ${br.SoLanTreHan} sau khi gia hạn lần 2)`;
-          }
-        }
-        
         fineData.push([
           "Phạt trễ hạn",
-          `${daysLate} ngày × ${fineRate.toLocaleString("vi-VN")} đ${rateExplanation} = ${lateFine.toLocaleString("vi-VN")} đ`
+          `${daysLate} ngày × ${fineRate.toLocaleString("vi-VN")} đ = ${lateFine.toLocaleString("vi-VN")} đ`
         ]);
       } else {
         fineData.push(["Phạt trễ hạn", "0 đ (trả đúng hạn)"]);
       }    
     // 5. PHẠT HƯ HỎNG/MẤT SÁCH - Chi tiết đầy đủ VỚI GIÁ SÁCH THẬT
+    damageFine = 0;
     if (["Hư hỏng", "Mất sách"].includes(br.TrangThai)) {
       if (br.TrangThai === "Hư hỏng") {
         const damageLevel = br.MucDoHuHong || "Không rõ";
@@ -619,6 +592,7 @@ exports.printFineTicket = async (req, res) => {
             `Phạt hư hỏng (${damageLevel})`,
             `${percentage}% × ${bookPrice.toLocaleString("vi-VN")} đ = ${calculatedDamage.toLocaleString("vi-VN")} đ`
           ]);
+          damageFine += calculatedDamage;
         } else {
           fineData.push([
             `Phạt hư hỏng (${damageLevel})`,
@@ -628,10 +602,12 @@ exports.printFineTicket = async (req, res) => {
       } else if (br.TrangThai === "Mất sách") {
         if (bookPrice > 0) {
           const lostFee = 50000;
+          const calculatedLost = Math.round(bookPrice + 50000);
           fineData.push([
             "Phạt mất sách",
-            `100% × ${bookPrice.toLocaleString("vi-VN")} đ + ${lostFee.toLocaleString("vi-VN")} đ phí = ${(bookPrice + lostFee).toLocaleString("vi-VN")} đ`
+            `100% × ${bookPrice.toLocaleString("vi-VN")} đ + ${lostFee.toLocaleString("vi-VN")} đ phí = ${calculatedLost.toLocaleString("vi-VN")} đ`
           ]);
+          damageFine += calculatedLost;
         } else {
           fineData.push([
             "Phạt mất sách",
@@ -640,6 +616,7 @@ exports.printFineTicket = async (req, res) => {
         }
       }
     }
+
     
     // 6. Ghi chú (nếu có)
     if (br.GhiChu) {
