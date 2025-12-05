@@ -8,13 +8,10 @@ export const useRequestStore = defineStore("request", {
 
   actions: {
     async create(data) {
-  try {
-    const res = await http.post("/request", data);
-    console.log("REQUEST CREATED:", res.data);
-  } catch (err) {
-    console.error("ERROR:", err.response?.data || err);
-  }
-},
+      const res = await http.post("/request", data);
+      console.log("REQUEST CREATED:", res.data);
+      return res.data;
+    },
 
     async fetchMine() {
       const res = await http.get("/request/my");

@@ -67,6 +67,16 @@ async getAll(query) {
     const reader = await Reader.findOne({ MaDocGia: req.MaDocGia });
     if (!reader) throw new Error("Không tìm thấy độc giả");
 
+    // Kiểm tra xem độc giả có tiền phạt chưa thanh toán không
+    const unpaidFine = await BorrowRecord.findOne({
+      MaDocGia: req.MaDocGia,
+      TienPhat: { $gt: 0 },
+      DaThanhToanPhat: false,
+    });
+    if (unpaidFine) {
+      throw new Error("Độc giả có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi duyệt yêu cầu mượn.");
+    }
+
     // Lấy cấu hình
     const maxBorrow = await getCfg("SO_SACH_MUON_TOI_DA", 5);
     const borrowDays = await getCfg("SO_NGAY_MUON", 30);

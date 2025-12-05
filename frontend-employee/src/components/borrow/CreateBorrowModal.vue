@@ -103,15 +103,22 @@ const handleSubmit = async () => {
 
   try {
     loading.value = true;
-    await store.create({
+    await store.createBorrow({
       MaDocGia: form.MaDocGia.trim(),
       MaSach: form.MaSach.trim(),
     });
     toast.success("Tạo phiếu mượn thành công!");
+    // Close modal after setting loading to false
+    loading.value = false;
     close();
   } catch (err) {
-    toast.error(err?.response?.data?.message || "Lỗi tạo phiếu mượn");
-  } finally {
+    // Bắt lỗi từ server với nhiều định dạng khác nhau
+    const errorMessage = 
+      err?.response?.data?.message || 
+      err?.response?.data?.error ||
+      err?.message || 
+      "Lỗi tạo phiếu mượn";
+    toast.error(errorMessage);
     loading.value = false;
   }
 };

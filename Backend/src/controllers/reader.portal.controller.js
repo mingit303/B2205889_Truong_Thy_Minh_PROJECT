@@ -258,18 +258,34 @@ exports.clearCart = async (req, res) => {
 // BORROW REQUEST
 // ===============================
 exports.createBorrowRequest = async (req, res) => {
-  const r = await BorrowRequest.create({
-    MaDocGia: req.user.id,
-    Sach: req.body.Sach,
-    GhiChu: req.body.GhiChu || "",
-    // TrangThai: "Chờ duyệt",
-    TrangThai: "CHO_DUYET", // ✅ dùng chung với FE
-  });
+  try {
+    // Kiểm tra xem độc giả có tiền phạt chưa thanh toán không
+    const unpaidFine = await BorrowRecord.findOne({
+      MaDocGia: req.user.id,
+      TienPhat: { $gt: 0 },
+      DaThanhToanPhat: false,
+    });
+    if (unpaidFine) {
+      return res.status(400).json({
+        message: "Bạn có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi gửi yêu cầu mượn sách mới.",
+      });
+    }
 
-  // Emit socket event để employee nhận real-time
-  emitSocketEvent(SOCKET_EVENTS.REQUEST_CREATED, r);
+    const r = await BorrowRequest.create({
+      MaDocGia: req.user.id,
+      Sach: req.body.Sach,
+      GhiChu: req.body.GhiChu || "",
+      // TrangThai: "Chờ duyệt",
+      TrangThai: "CHO_DUYET", // ✅ dùng chung với FE
+    });
 
-  res.json({ message: "Gửi yêu cầu thành công", data: r });
+    // Emit socket event để employee nhận real-time
+    emitSocketEvent(SOCKET_EVENTS.REQUEST_CREATED, r);
+
+    res.json({ message: "Gửi yêu cầu thành công", data: r });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 

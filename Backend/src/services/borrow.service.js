@@ -109,6 +109,16 @@ exports.createBorrowRecord = async (data, employeeId) => {
   const reader = await Reader.findOne({ MaDocGia });
   if (!reader) throw new Error(`Không tìm thấy độc giả: ${MaDocGia}`);
 
+  // Kiểm tra xem độc giả có tiền phạt chưa thanh toán không
+  const unpaidFine = await BorrowRecord.findOne({
+    MaDocGia,
+    TienPhat: { $gt: 0 },
+    DaThanhToanPhat: false,
+  });
+  if (unpaidFine) {
+    throw new Error("Độc giả có tiền phạt chưa thanh toán. Vui lòng thanh toán trước khi mượn sách mới.");
+  }
+
   const book = await Book.findOne({ MaSach });
   if (!book) throw new Error(`Không tìm thấy sách: ${MaSach}`);
 
