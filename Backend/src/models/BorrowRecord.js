@@ -22,6 +22,7 @@ const BorrowRecordSchema = new mongoose.Schema(
     },
 
     SoLanGiaHan: { type: Number, default: 0 },
+    SoLanTreHan: { type: Number, default: 0 }, // Đếm số lần đã trễ hạn
 
     // TIỀN PHẠT TỔNG
     TienPhat: { type: Number, default: 0 },

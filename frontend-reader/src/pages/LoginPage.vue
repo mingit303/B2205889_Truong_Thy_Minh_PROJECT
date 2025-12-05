@@ -1,9 +1,14 @@
 <template>
   <div class="login-form">
-    <h3 class="text-center mb-4 fw-bold">
-      <font-awesome-icon icon="user"/>
-      Đăng nhập
-    </h3>
+    <div class="text-center mb-4">
+      <div class="logo-wrapper mb-3">
+        <img src="../assets/frontend_logo.png" alt="Logo" class="logo-icon" />
+      </div>
+      <h3 class="fw-bold text-center">
+        <span>MINGMING LIBRARY</span>
+      </h3>
+      <p class="text-muted mb-0">Đăng nhập</p>
+    </div>
 
     <div v-if="errorMsg" class="alert alert-danger py-2 small">
       {{ errorMsg }}
@@ -36,7 +41,6 @@
       </div>
 
       <button class="btn btn-primary w-100 py-2">
-        <font-awesome-icon icon="unlock-keyhole" class="me-2" />
         Đăng nhập
       </button>
 
@@ -80,6 +84,21 @@ const login = async () => {
 </script>
 
 <style scoped>
+.logo-wrapper {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .login-form {
   max-width: 420px;
   padding: 40px;

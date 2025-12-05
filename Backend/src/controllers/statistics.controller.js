@@ -64,3 +64,13 @@ exports.getStatusDistribution = async (req, res) => {
     return error(res, err.message || "Lỗi lấy phân bố trạng thái", 500);
   }
 };
+
+exports.getDamagedAndLostBooks = async (req, res) => {
+  try {
+    const data = await service.getDamagedAndLostBooks();
+    return success(res, data, "Lấy danh sách sách hư hỏng/mất thành công");
+  } catch (err) {
+    console.error(err);
+    return error(res, err.message || "Lỗi lấy danh sách sách hư hỏng/mất", 500);
+  }
+};

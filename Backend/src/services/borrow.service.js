@@ -4,11 +4,32 @@ const Reader = require("../models/Reader");
 const Book = require("../models/Book");
 const Employee = require("../models/Employee");
 const Config = require("../models/Config");
+const { SOCKET_EVENTS, emitSocketEvent } = require("../config/socket");
 
 // Helper lấy cấu hình hệ thống
 const getCfg = async (key, def = 0) => {
   const c = await Config.findOne({ Ten: key });
   return c ? Number(c.GiaTri) : def;
+};
+
+// Helper tính tiền phạt trễ hạn theo quy tắc leo thang
+const calculateLateFee = async (daysLate, soLanGiaHan, soLanTreHan) => {
+  const baseFine = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
+  
+  // Nếu đã gia hạn ít nhất 1 lần VÀ đang bị trễ
+  if (soLanGiaHan >= 1) {
+    // Lần trễ đầu tiên sau khi gia hạn: 15,000đ/ngày
+    if (soLanTreHan === 0) {
+      return daysLate * 15000;
+    }
+    // Lần trễ thứ hai trở đi: 30,000đ/ngày
+    else {
+      return daysLate * 30000;
+    }
+  }
+  
+  // Nếu chưa gia hạn lần nào: phạt thông thường 5,000đ/ngày
+  return daysLate * baseFine;
 };
 
 // ===========================
@@ -162,8 +183,6 @@ exports.returnBook = async (id) => {
 
   // Nếu chưa có tiền phạt và bây giờ trả trễ → tính tiền phạt
   if (tienPhat === 0 && now > r.HanTra) {
-    const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
-    
     // So sánh ngày không tính giờ phút giây
     const hanTraDate = new Date(r.HanTra);
     hanTraDate.setHours(0, 0, 0, 0);
@@ -171,9 +190,13 @@ exports.returnBook = async (id) => {
     nowDate.setHours(0, 0, 0, 0);
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
-    tienPhat = daysLate * finePerDay;
+    
+    // Tính tiền phạt theo quy tắc leo thang
+    tienPhat = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
+    
     r.TienPhat = tienPhat;
     r.LyDoXuPhat = "Trễ hạn";
+    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
   }
   
   // Luôn chuyển về "Đã trả" khi trả sách (dù có phạt hay không)
@@ -185,9 +208,19 @@ exports.returnBook = async (id) => {
   if (book) {
     book.SoQuyen += 1;
     await book.save();
+    
+    // Emit socket event để cập nhật số lượng sách realtime
+    emitSocketEvent(SOCKET_EVENTS.BOOK_UPDATED, {
+      MaSach: book.MaSach,
+      SoQuyen: book.SoQuyen,
+    });
   }
 
   await r.save();
+  
+  // Emit event cập nhật phiếu mượn
+  emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, r);
+  
   return r;
 };
 
@@ -198,8 +231,8 @@ exports.extendBorrow = async (id) => {
   const r = await BorrowRecord.findById(id);
   if (!r) throw new Error("Không tìm thấy phiếu mượn");
 
-  if (r.TrangThai !== "Đã mượn") {
-    throw new Error("Chỉ gia hạn khi phiếu đang 'Đã mượn'");
+  if (!["Đã mượn", "Trễ hạn"].includes(r.TrangThai)) {
+    throw new Error("Chỉ gia hạn khi phiếu đang 'Đã mượn' hoặc 'Trễ hạn'");
   }
 
   const maxExtend = await getCfg("SO_LAN_GIA_HAN_TOI_DA", 2);
@@ -209,7 +242,34 @@ exports.extendBorrow = async (id) => {
     throw new Error(`Đã đạt số lần gia hạn tối đa (${maxExtend})`);
   }
 
+  const now = new Date();
+  
+  // Nếu đang trễ hạn thì tính tiền phạt trước khi gia hạn
+  if (r.TrangThai === "Trễ hạn" || now > r.HanTra) {
+    const hanTraDate = new Date(r.HanTra);
+    hanTraDate.setHours(0, 0, 0, 0);
+    const nowDate = new Date(now);
+    nowDate.setHours(0, 0, 0, 0);
+    
+    const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
+    
+    if (daysLate > 0) {
+      // Tính tiền phạt cho lần trễ này
+      const lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
+      
+      // Cộng dồn tiền phạt
+      r.TienPhat = (r.TienPhat || 0) + lateFine;
+      r.LyDoXuPhat = r.LyDoXuPhat 
+        ? `${r.LyDoXuPhat}; Trễ hạn ${daysLate} ngày khi gia hạn lần ${r.SoLanGiaHan + 1}`
+        : `Trễ hạn ${daysLate} ngày khi gia hạn lần ${r.SoLanGiaHan + 1}`;
+      
+      // Tăng số lần trễ hạn
+      r.SoLanTreHan += 1;
+    }
+  }
+
   r.SoLanGiaHan += 1;
+  r.TrangThai = "Đã mượn"; // Chuyển về trạng thái bình thường sau khi gia hạn
   
   // Gia hạn thêm số ngày và set về 23:59:59 của ngày hết hạn mới
   const newDeadline = new Date(r.HanTra.getTime() + extendDays * 86400000);
@@ -243,8 +303,6 @@ exports.reportDamaged = async (id, data) => {
   const now = new Date();
   let lateFine = 0;
   if (now > r.HanTra) {
-    const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
-    
     // So sánh ngày không tính giờ phút giây
     const hanTraDate = new Date(r.HanTra);
     hanTraDate.setHours(0, 0, 0, 0);
@@ -252,7 +310,10 @@ exports.reportDamaged = async (id, data) => {
     nowDate.setHours(0, 0, 0, 0);
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
-    lateFine = daysLate * finePerDay;
+    
+    // Tính tiền phạt theo quy tắc leo thang
+    lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
+    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
   }
   
   // Tính tiền phạt hư hỏng
@@ -274,6 +335,10 @@ exports.reportDamaged = async (id, data) => {
 
   // sách hư hỏng => không cộng lại SoQuyen
   await r.save();
+  
+  // Emit event cập nhật phiếu mượn
+  emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, r);
+  
   return r;
 };
 
@@ -300,8 +365,6 @@ exports.reportLost = async (id, data) => {
   const now = new Date();
   let lateFine = 0;
   if (now > r.HanTra) {
-    const finePerDay = await getCfg("TIEN_PHAT_MOI_NGAY", 5000);
-    
     // So sánh ngày không tính giờ phút giây
     const hanTraDate = new Date(r.HanTra);
     hanTraDate.setHours(0, 0, 0, 0);
@@ -309,7 +372,10 @@ exports.reportLost = async (id, data) => {
     nowDate.setHours(0, 0, 0, 0);
     
     const daysLate = Math.floor((nowDate - hanTraDate) / 86400000);
-    lateFine = daysLate * finePerDay;
+    
+    // Tính tiền phạt theo quy tắc leo thang
+    lateFine = await calculateLateFee(daysLate, r.SoLanGiaHan, r.SoLanTreHan);
+    r.SoLanTreHan += 1; // Tăng số lần trễ hạn
   }
   
   // Tính tiền phạt mất sách
@@ -330,6 +396,10 @@ exports.reportLost = async (id, data) => {
 
   // Sách mất => đã trừ tồn khi mượn, không cộng lại
   await r.save();
+  
+  // Emit event cập nhật phiếu mượn
+  emitSocketEvent(SOCKET_EVENTS.BORROW_UPDATED, r);
+  
   return r;
 };
 

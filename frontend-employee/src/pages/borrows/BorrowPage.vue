@@ -254,7 +254,7 @@
 
               <!-- Gia hạn -->
               <button
-                v-if="selectedBorrow && getActualStatus(selectedBorrow) === 'Đã mượn'"
+                v-if="selectedBorrow && ['Đã mượn', 'Trễ hạn'].includes(getActualStatus(selectedBorrow))"
                 class="list-group-item list-group-item-action"
                 @click="handleExtend"
               >

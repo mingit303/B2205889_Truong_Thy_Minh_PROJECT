@@ -116,7 +116,7 @@
               class="badge corner-badge"
               :class="book.SoQuyen > 0 ? 'bg-success' : 'bg-secondary'"
             >
-              {{ book.SoQuyen > 0 ? "Còn sách" : "Hết sách" }}
+              {{ book.SoQuyen > 0 ? `Còn ${book.SoQuyen} cuốn` : "Hết sách" }}
             </span>
 
             <img

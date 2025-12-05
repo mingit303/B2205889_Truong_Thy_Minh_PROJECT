@@ -82,14 +82,14 @@
 
     </div>
 
-    <!-- ======= ROW 3: BORROW + RETURN LINE CHARTS + PIE ======= -->
+    <!-- ======= ROW 3: BORROW + RETURN LINE CHARTS (COMBINED) + PIE ======= -->
     <div class="row g-3 mb-4">
 
-      <!-- Borrow chart -->
-      <div class="col-md-6">
+      <!-- Combined Borrow & Return chart -->
+      <div class="col-md-12">
         <div class="card shadow-sm border-0 h-100">
           <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <span class="fw-bold">Lượt mượn theo tháng</span>
+            <span class="fw-bold">Thống kê mượn và trả sách theo tháng</span>
 
             <div class="d-flex align-items-center gap-2">
               <button class="btn btn-sm btn-outline-danger" @click="exportBorrowReturnPDF">
@@ -107,44 +107,26 @@
           </div>
 
           <div class="card-body">
-            <apexchart
-              type="line"
-              height="320"
-              :options="borrowOptions"
-              :series="borrowSeries"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Return chart -->
-      <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <span class="fw-bold">Lượt trả theo tháng</span>
-
-            <div class="d-flex align-items-center gap-2">
-              <button class="btn btn-sm btn-outline-danger" @click="exportBorrowReturnPDF">
-                <font-awesome-icon icon="file-pdf" />
-              </button>
-              <span class="small text-muted">Năm</span>
-              <input
-                type="number"
-                class="form-control form-control-sm"
-                style="width: 100px"
-                v-model.number="store.brYear"
-                @change="store.loadBorrowReturn()"
-              />
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-muted small mb-3">Lượt mượn theo tháng</h6>
+                <apexchart
+                  type="line"
+                  height="300"
+                  :options="borrowOptions"
+                  :series="borrowSeries"
+                />
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-muted small mb-3">Lượt trả theo tháng</h6>
+                <apexchart
+                  type="line"
+                  height="300"
+                  :options="returnOptions"
+                  :series="returnSeries"
+                />
+              </div>
             </div>
-          </div>
-
-          <div class="card-body">
-            <apexchart
-              type="line"
-              height="320"
-              :options="returnOptions"
-              :series="returnSeries"
-            />
           </div>
         </div>
       </div>
@@ -340,6 +322,133 @@
       </div>
     </div>
 
+    <!-- ======= ROW 5: DAMAGED & LOST BOOKS TABLE ======= -->
+    <div class="card shadow-sm border-0 mt-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Thống kê sách hư hỏng và mất</span>
+        <button class="btn btn-sm btn-outline-danger" @click="exportDamagedLostPDF">
+          <font-awesome-icon icon="file-pdf" />
+        </button>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="p-3">
+          <span class="small text-muted">Tổng số sách:</span>
+          <span class="fw-bold text-primary ms-2">{{ store.damagedLost.totalBooks }}</span>
+          <span class="small text-muted ms-3">Tổng số phiếu:</span>
+          <span class="fw-bold text-danger ms-2">{{ store.damagedLost.total }}</span>
+        </div>
+
+        <div style="max-height: 600px; overflow-y: auto;">
+          <table class="table table-hover mb-0">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 60px" class="text-center">#</th>
+                <th>Mã sách</th>
+                <th>Tên sách</th>
+                <th class="text-center" style="width: 120px">Hư hỏng nhẹ</th>
+                <th class="text-center" style="width: 120px">Hư hỏng nặng</th>
+                <th class="text-center" style="width: 120px">Mất sách</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="!store.damagedLost.books || !store.damagedLost.books.length">
+                <td colspan="6" class="text-center py-3 text-muted small">Không có dữ liệu</td>
+              </tr>
+
+              <tr
+                v-for="(book, idx) in store.damagedLost.books"
+                :key="idx"
+              >
+                <td class="text-center">{{ idx + 1 }}</td>
+                <td>{{ book.MaSach }}</td>
+                <td>{{ book.TenSach }}</td>
+                <td class="text-center">
+                  <span 
+                    v-if="book.lightCount > 0"
+                    class="badge bg-warning text-dark cursor-pointer"
+                    @click="showRecordDetails(book, 'light')"
+                    style="cursor: pointer;"
+                  >
+                    {{ book.lightCount }}
+                  </span>
+                  <span v-else class="text-muted">0</span>
+                </td>
+                <td class="text-center">
+                  <span 
+                    v-if="book.heavyCount > 0"
+                    class="badge bg-danger cursor-pointer"
+                    @click="showRecordDetails(book, 'heavy')"
+                    style="cursor: pointer;"
+                  >
+                    {{ book.heavyCount }}
+                  </span>
+                  <span v-else class="text-muted">0</span>
+                </td>
+                <td class="text-center">
+                  <span 
+                    v-if="book.lostCount > 0"
+                    class="badge bg-dark cursor-pointer"
+                    @click="showRecordDetails(book, 'lost')"
+                    style="cursor: pointer;"
+                  >
+                    {{ book.lostCount }}
+                  </span>
+                  <span v-else class="text-muted">0</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECORD DETAILS MODAL -->
+    <div class="modal fade" id="recordDetailsModal" tabindex="-1" ref="recordDetailsModal">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <font-awesome-icon icon="list" class="me-2" />
+              Chi tiết phiếu - {{ selectedBook?.TenSach }}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedBook && selectedRecords">
+            <div class="mb-3">
+              <span class="badge" :class="getTypeBadgeClass(selectedType)">
+                {{ getTypeLabel(selectedType) }}: {{ selectedRecords.length }} phiếu
+              </span>
+            </div>
+            
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th style="width: 50px">#</th>
+                  <th>Mã độc giả</th>
+                  <th>Họ tên</th>
+                  <th>Tiền phạt</th>
+                  <th>Ngày trả</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(rec, idx) in selectedRecords" :key="idx">
+                  <td class="text-center">{{ idx + 1 }}</td>
+                  <td>{{ rec.MaDocGia }}</td>
+                  <td>{{ rec.HoTen }}</td>
+                  <td class="text-danger fw-bold">{{ formatCurrency(rec.TienPhat) }}</td>
+                  <td>{{ formatDate(rec.NgayTra) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -353,6 +462,12 @@ const loading = store.loading;
 const fineModal = ref(null);
 const selectedFine = ref(null);
 let fineModalInstance = null;
+
+const recordDetailsModal = ref(null);
+const selectedBook = ref(null);
+const selectedType = ref(null); // 'light', 'heavy', 'lost'
+const selectedRecords = ref([]);
+let recordDetailsModalInstance = null;
 
 /* ========= OVERVIEW CARDS ========= */
 const cards = computed(() => [
@@ -470,6 +585,11 @@ const exportFinesPDF = () => {
   window.open(url, "_blank");
 };
 
+const exportDamagedLostPDF = () => {
+  const url = `${import.meta.env.VITE_API_URL}/pdf/statistics/damaged-lost-books`;
+  window.open(url, "_blank");
+};
+
 /* ========= LOAD DATA ========= */
 onMounted(() => {
   store.loadOverview();
@@ -478,12 +598,37 @@ onMounted(() => {
   store.loadBorrowReturn();
   store.loadStatusDistribution();
   store.loadFines();
+  store.loadDamagedAndLostBooks();
   fineModalInstance = new Modal(fineModal.value);
+  recordDetailsModalInstance = new Modal(recordDetailsModal.value);
 });
 
 const showFineDetail = (fine) => {
   selectedFine.value = fine;
   fineModalInstance.show();
+};
+
+const showRecordDetails = (book, type) => {
+  selectedBook.value = book;
+  selectedType.value = type;
+  selectedRecords.value = book.records[type] || [];
+  recordDetailsModalInstance.show();
+};
+
+const getTypeBadgeClass = (type) => {
+  return {
+    light: 'bg-warning text-dark',
+    heavy: 'bg-danger',
+    lost: 'bg-dark'
+  }[type] || 'bg-secondary';
+};
+
+const getTypeLabel = (type) => {
+  return {
+    light: 'Hư hỏng nhẹ',
+    heavy: 'Hư hỏng nặng',
+    lost: 'Mất sách'
+  }[type] || '';
 };
 
 const getFineBreakdown = (record) => {

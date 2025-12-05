@@ -32,6 +32,13 @@ export const useStatisticsStore = defineStore("statistics", {
     totalFine: 0,
     fineRecords: [],
 
+    // damaged and lost books
+    damagedLost: {
+      books: [],
+      total: 0,
+      totalBooks: 0,
+    },
+
     loading: {
       overview: false,
       topBooks: false,
@@ -39,6 +46,7 @@ export const useStatisticsStore = defineStore("statistics", {
       br: false,
       status: false,
       fines: false,
+      damagedLost: false,
     },
   }),
 
@@ -119,6 +127,16 @@ export const useStatisticsStore = defineStore("statistics", {
         this.fineRecords = d.records;
       } finally {
         this.loading.fines = false;
+      }
+    },
+
+    async loadDamagedAndLostBooks() {
+      this.loading.damagedLost = true;
+      try {
+        const res = await statisticsApi.getDamagedAndLostBooks();
+        this.damagedLost = res.data.data;
+      } finally {
+        this.loading.damagedLost = false;
       }
     },
   },

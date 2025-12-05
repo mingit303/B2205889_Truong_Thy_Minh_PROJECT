@@ -15,9 +15,7 @@ exports.getOverview = async () => {
   ] = await Promise.all([
     Book.countDocuments(),
     Reader.countDocuments({ TrangThai: 1 }),
-    BorrowRecord.countDocuments({
-      TrangThai: { $in: ["Đã mượn", "Trễ hạn"] },
-    }),
+    BorrowRecord.countDocuments({ TrangThai: "Đã mượn" }),
     BorrowRecord.countDocuments({ TrangThai: "Trễ hạn" }),
   ]);
 
@@ -231,5 +229,72 @@ exports.getStatusDistribution = async ({ month, year }) => {
     year: y,
     labels,
     values,
+  };
+};
+
+/* =========================
+   6) SÁCH HƯ HỎNG / MẤT
+   ========================= */
+exports.getDamagedAndLostBooks = async () => {
+  // Lấy tất cả phiếu mượn có trạng thái Hư hỏng hoặc Mất sách
+  const records = await BorrowRecord.find({
+    TrangThai: { $in: ["Hư hỏng", "Mất sách"] }
+  }).sort({ createdAt: -1 });
+
+  const bookCodes = [...new Set(records.map(r => r.MaSach))];
+  const books = await Book.find({ MaSach: { $in: bookCodes } });
+  const readerCodes = [...new Set(records.map(r => r.MaDocGia))];
+  const readers = await Reader.find({ MaDocGia: { $in: readerCodes } });
+
+  const bookMap = new Map(books.map(b => [b.MaSach, b]));
+  const readerMap = new Map(readers.map(r => [r.MaDocGia, r]));
+
+  // Nhóm theo sách: mỗi sách có bao nhiêu phiếu hư hỏng nhẹ/nặng/mất
+  const bookStats = new Map();
+
+  records.forEach(r => {
+    const maSach = r.MaSach;
+    
+    if (!bookStats.has(maSach)) {
+      const book = bookMap.get(maSach);
+      bookStats.set(maSach, {
+        MaSach: maSach,
+        TenSach: book?.TenSach || "—",
+        lightCount: 0,
+        heavyCount: 0,
+        lostCount: 0,
+        records: { light: [], heavy: [], lost: [] }
+      });
+    }
+
+    const stat = bookStats.get(maSach);
+    const reader = readerMap.get(r.MaDocGia);
+
+    const recordInfo = {
+      _id: r._id,
+      MaDocGia: r.MaDocGia,
+      HoTen: reader ? `${reader.HoLot} ${reader.Ten}`.trim() : "—",
+      TienPhat: r.TienPhat || 0,
+      NgayTra: r.NgayTra,
+    };
+
+    if (r.TrangThai === "Mất sách") {
+      stat.lostCount += 1;
+      stat.records.lost.push(recordInfo);
+    } else if (r.MucDoHuHong === "Nhẹ") {
+      stat.lightCount += 1;
+      stat.records.light.push(recordInfo);
+    } else if (r.MucDoHuHong === "Nặng") {
+      stat.heavyCount += 1;
+      stat.records.heavy.push(recordInfo);
+    }
+  });
+
+  const booksArray = Array.from(bookStats.values());
+
+  return {
+    books: booksArray,
+    total: records.length,
+    totalBooks: booksArray.length,
   };
 };

@@ -85,7 +85,7 @@ const fullName = computed(() =>
 
 const logout = () => {
   auth.logout();
-  toast.success("Đã đăng xuất", "Hẹn gặp lại!");
+  toast.success("Hẹn gặp lại!", "Đã đăng xuất");
   router.push("/login");
 };
 </script>

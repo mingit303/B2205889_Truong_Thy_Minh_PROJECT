@@ -11,5 +11,6 @@ router.get("/top-readers", authenticate, isEmployee, ctrl.getTopReaders);
 router.get("/borrow-return", authenticate, isEmployee, ctrl.getBorrowReturn);
 router.get("/fines", authenticate, isEmployee, ctrl.getFines);
 router.get("/status-distribution", authenticate, isEmployee, ctrl.getStatusDistribution);
+router.get("/damaged-lost-books", authenticate, isEmployee, ctrl.getDamagedAndLostBooks);
 
 module.exports = router;

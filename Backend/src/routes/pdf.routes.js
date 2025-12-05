@@ -12,5 +12,6 @@ router.get("/statistics/top", pdf.printTopStatistics);
 router.get("/statistics/borrow-return", pdf.printBorrowReturnStatistics);
 router.get("/statistics/status", pdf.printStatusStatistics);
 router.get("/statistics/fines", pdf.printFinesStatistics);
+router.get("/statistics/damaged-lost-books", pdf.printDamagedAndLostBooks);
 
 module.exports = router;

@@ -1,9 +1,15 @@
 <template>
-  <div class="register-form">
-    <h3 class="text-center mb-4 fw-bold">
-      <font-awesome-icon icon="user"/>
-      Đăng ký
-    </h3>
+  <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center py-4">
+    <div class="register-form">
+      <div class="text-center mb-3">
+        <div class="logo-wrapper mb-2">
+          <img src="../assets/frontend_logo.png" alt="Logo" class="logo-icon" />
+        </div>
+        <h3 class="mb-1 fw-bold text-center">
+          <span>MINGMING LIBRARY</span>
+        </h3>
+        <p class="text-muted mb-0 small">Đăng ký tài khoản</p>
+      </div>
 
     <!-- ERROR MESSAGE -->
     <div v-if="errorMsg" class="alert alert-danger py-2">
@@ -12,6 +18,9 @@
 
     <form @submit.prevent="submit">
 
+      <div class="row">
+        <!-- CỘT TRÁI -->
+        <div class="col-md-6">
             <!-- MÃ ĐỘC GIẢ -->
             <div class="mb-3">
               <label class="form-label">Mã độc giả *</label>
@@ -26,52 +35,53 @@
               />
             </div>
 
-            <!-- HỌ TÊN -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label class="form-label">Họ lót *</label>
-                <input 
-                  v-model="form.HoLot" 
-                  type="text"
-                  class="form-control" 
-                  required 
-                  minlength="1"
-                  maxlength="50"
-                />
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label">Tên *</label>
-                <input 
-                  v-model="form.Ten" 
-                  type="text"
-                  class="form-control" 
-                  required 
-                  minlength="1"
-                  maxlength="20"
-                />
-              </div>
+            <!-- HỌ LÓT -->
+            <div class="mb-3">
+              <label class="form-label">Họ lót *</label>
+              <input 
+                v-model="form.HoLot" 
+                type="text"
+                class="form-control" 
+                required 
+                minlength="1"
+                maxlength="50"
+              />
             </div>
 
-            <!-- GIỚI TÍNH & NGÀY SINH -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label class="form-label">Giới tính *</label>
-                <select v-model="form.Phai" class="form-select">
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                  <option value="Khác">Khác</option>
-                </select>
-              </div>
+            <!-- TÊN -->
+            <div class="mb-3">
+              <label class="form-label">Tên *</label>
+              <input 
+                v-model="form.Ten" 
+                type="text"
+                class="form-control" 
+                required 
+                minlength="1"
+                maxlength="20"
+              />
+            </div>
 
-              <div class="col-md-6">
-                <label class="form-label">Ngày sinh</label>
-                <input 
-                  type="date" 
-                  v-model="form.NgaySinh" 
-                  class="form-control" 
-                />
-              </div>
+            <!-- GIỚI TÍNH -->
+            <div class="mb-3">
+              <label class="form-label">Giới tính *</label>
+              <select v-model="form.Phai" class="form-select">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI -->
+        <div class="col-md-6">
+            <!-- NGÀY SINH -->
+            <div class="mb-3">
+              <label class="form-label">Ngày sinh</label>
+              <input 
+                type="date" 
+                v-model="form.NgaySinh" 
+                class="form-control" 
+              />
             </div>
 
             <!-- EMAIL -->
@@ -110,24 +120,25 @@
                 maxlength="200"
               ></textarea>
             </div>
+        </div>
+      </div>
 
-            <!-- MẬT KHẨU -->
-            <div class="mb-3">
-              <label class="form-label">Mật khẩu *</label>
-              <input 
-                v-model="form.MatKhau" 
-                type="password" 
-                minlength="6"
-                class="form-control" 
-                placeholder="Tối thiểu 6 ký tự" 
-                required 
-              />
-            </div>
+      <!-- MẬT KHẨU (full width) -->
+      <div class="mb-3">
+        <label class="form-label">Mật khẩu *</label>
+        <input 
+          v-model="form.MatKhau" 
+          type="password" 
+          minlength="6"
+          class="form-control" 
+          placeholder="Tối thiểu 6 ký tự" 
+          required 
+        />
+      </div>
 
-            <button class="btn btn-primary w-100 py-2">
-              <font-awesome-icon icon="user-check" class="me-2" />
-              Đăng ký
-            </button>
+      <button class="btn btn-primary w-100 py-2">
+        Đăng ký
+      </button>
 
     </form>
 
@@ -135,6 +146,7 @@
       <router-link to="/login">
         Đã có tài khoản? <strong>Đăng nhập</strong>
       </router-link>
+    </div>
     </div>
   </div>
 </template>
@@ -180,8 +192,24 @@ const submit = async () => {
 </script>
 
 <style scoped>
+.logo-wrapper {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .register-form {
-  max-width: 550px;
+  max-width: 800px;
+  width: 100%;
   padding: 40px;
   background: white;
   border-radius: 16px;
